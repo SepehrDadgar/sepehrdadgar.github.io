@@ -15,13 +15,9 @@ Hi there! I'm {{ site.author }}, an Electronics Engineer passionate about techno
 
 [View all posts](/blog) | [View my projects](/projects)
 
-## About Me
-
-I'm an Electronics Engineer with expertise in [your areas of expertise]. I love working on [your interests] and sharing my knowledge with others.
-
 ## Get In Touch
 
-Feel free to reach out to me through [email](mailto:{{ site.email }}) or connect with me on [GitHub](https://github.com/{{ site.github_username }}) and [LinkedIn](https://linkedin.com/in/{{ site.linkedin_username }}).
+Feel free to reach out to me through [email]({{ site.email }}) or connect with me on [GitHub](https://github.com/{{ site.github_username }}) and [LinkedIn](https://linkedin.com/in/{{ site.linkedin_username }}).
 
 <style>
   .welcome-section {

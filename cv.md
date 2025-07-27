@@ -4,23 +4,18 @@ title: CV
 permalink: /cv/
 ---
 
-# Your Name
+# Sepehr KhabazDadgar
 Electronics Engineer
 
 ## Contact
-- Email: [your.email@example.com](mailto:your.email@example.com)
-- GitHub: [github.com/yourusername](https://github.com/yourusername)
-- LinkedIn: [linkedin.com/in/yourusername](https://linkedin.com/in/yourusername)
+- Email: [sepehrkhabazdadgar@gmail.com](mailto:sepehrkhabazdadgar@gmail.com)
+- GitHub: [github.com/SepehrDadgar](https://github.com/SepehrDadgar)
+- LinkedIn: [linkedin](https://www.linkedin.com/in/sepehr-dadgar-985a93197/)
 
 ## Education
-**Bachelor of Science in Electronics Engineering**  
-*University Name, Year - Year*
+**Bachelor of Science in Biomedical Engineering**  
+*Apadana Institute of Higher Education, 2019 - 2024*
 
-## Work Experience
-### Job Title  
-*Company Name, Year - Year*  
-- Responsibility or achievement
-- Another responsibility or achievement
 
 ## Skills
 - **Programming:** Python, C++, Verilog
@@ -32,8 +27,7 @@ Electronics Engineer
 - [Project 2](#) - Brief description
 
 ## Certifications
-- Certification 1 (Year)
-- Certification 2 (Year)
+- الکترونیک فنی حرفه ای (2025)
 
 ## Languages
 - English (Fluent)
