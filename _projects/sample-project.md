@@ -1,4 +1,5 @@
 ---
+layout: project
 title: "Sample Project"
 date: 2025-07-27
 description: "A brief description of the sample project"
