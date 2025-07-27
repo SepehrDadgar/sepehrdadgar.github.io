@@ -1,0 +1,66 @@
+<div class="social-links">
+  {%- if site.github_username -%}
+    <a href="https://github.com/{{ site.github_username| cgi_escape | escape }}" target="_blank" rel="noopener">
+      <i class="fab fa-github"></i>
+      <span class="username">{{ site.github_username| escape }}</span>
+    </a>
+  {%- endif -%}
+  
+  {%- if site.linkedin_username -%}
+    <a href="https://www.linkedin.com/in/{{ site.linkedin_username| cgi_escape | escape }}" target="_blank" rel="noopener">
+      <i class="fab fa-linkedin"></i>
+      <span class="username">LinkedIn</span>
+    </a>
+  {%- endif -%}
+  
+  {%- if site.instagram_username -%}
+    <a href="https://instagram.com/{{ site.instagram_username| cgi_escape | escape }}" target="_blank" rel="noopener">
+      <i class="fab fa-instagram"></i>
+      <span class="username">Instagram</span>
+    </a>
+  {%- endif -%}
+  
+  {%- if site.email -%}
+    <a href="mailto:{{ site.email }}">
+      <i class="fas fa-envelope"></i>
+      <span class="username">Email</span>
+    </a>
+  {%- endif -%}
+</div>
+
+<style>
+.social-links {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.social-links a {
+  color: #666;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.2s;
+}
+
+.social-links a:hover {
+  color: #2a7ae2;
+}
+
+.social-links i {
+  font-size: 1.2em;
+}
+
+@media (max-width: 600px) {
+  .social-links {
+    justify-content: flex-start;
+    margin-top: 10px;
+  }
+  
+  .footer-col-wrapper {
+    flex-direction: column;
+  }
+}
+</style>
