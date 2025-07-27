@@ -19,18 +19,20 @@ permalink: /projects/
         {% endif %}
       </p>
       <p>{{ project.description }}</p>
-      <div class="project-links">
-        {% if project.github %}
-          <a href="https://github.com/{{ project.github }}" class="btn" target="_blank">
-            <i class="fab fa-github"></i> View on GitHub
-          </a>
-        {% endif %}
-        {% if project.live_demo %}
-          <a href="{{ project.live_demo }}" class="btn" target="_blank">
-            <i class="fas fa-external-link-alt"></i> Live Demo
-          </a>
-        {% endif %}
-      </div>
+      {% if project.github or project.live_demo %}
+        <div class="project-links">
+          {% if project.github %}
+            <a href="https://github.com/{{ project.github }}" class="btn" target="_blank">
+              <i class="fab fa-github"></i> View on GitHub
+            </a>
+          {% endif %}
+          {% if project.live_demo %}
+            <a href="{{ project.live_demo }}" class="btn" target="_blank">
+              <i class="fas fa-external-link-alt"></i> Live Demo
+            </a>
+          {% endif %}
+        </div>
+      {% endif %}
     </div>
   {% endfor %}
 </div>

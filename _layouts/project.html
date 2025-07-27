@@ -1,0 +1,157 @@
+---
+layout: default
+---
+<article class="project">
+  <header class="project-header">
+    <h1 class="project-title">{{ page.title }}</h1>
+    <div class="project-meta">
+      {% if page.date %}
+        <span class="project-date">
+          <i class="far fa-calendar-alt"></i> {{ page.date | date: "%B %-d, %Y" }}
+        </span>
+      {% endif %}
+      {% if page.tags.size > 0 %}
+        <div class="project-tags">
+          {% for tag in page.tags %}
+            <span class="tag">{{ tag }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+  </header>
+
+  <div class="project-content">
+    {{ content }}
+  </div>
+
+  {% if page.github or page.live_demo %}
+    <div class="project-links">
+      {% if page.github %}
+        <a href="https://github.com/{{ page.github }}" class="btn" target="_blank">
+          <i class="fab fa-github"></i> View on GitHub
+        </a>
+      {% endif %}
+      {% if page.live_demo %}
+        <a href="{{ page.live_demo }}" class="btn" target="_blank">
+          <i class="fas fa-external-link-alt"></i> Live Demo
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+</article>
+
+<style>
+.project {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.project-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.project-title {
+  font-size: 2.2rem;
+  margin: 0 0 1rem;
+  color: #2c3e50;
+}
+
+.project-meta {
+  color: #6a737d;
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+}
+
+.project-date {
+  display: inline-block;
+  margin-right: 1rem;
+}
+
+.project-tags {
+  margin-top: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.tag {
+  background-color: #f1f8ff;
+  color: #0366d6;
+  padding: 0.2rem 0.8rem;
+  border-radius: 2em;
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+.project-content {
+  line-height: 1.7;
+  font-size: 1.05rem;
+  color: #2c3e50;
+}
+
+.project-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5rem auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.project-links {
+  margin-top: 3rem;
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 1.5rem;
+  background-color: #2a7ae2;
+  color: white !important;
+  text-decoration: none;
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: background-color 0.2s, transform 0.2s;
+  border: none;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background-color: #1a5cb0;
+  transform: translateY(-2px);
+  text-decoration: none;
+}
+
+.btn i {
+  font-size: 1.1em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .project-title {
+    font-size: 1.8rem;
+  }
+  
+  .project-content {
+    font-size: 1rem;
+  }
+  
+  .project-links {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+</style>
