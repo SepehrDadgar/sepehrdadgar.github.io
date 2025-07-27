@@ -3,6 +3,54 @@ layout: page
 title: Home
 ---
 
+<script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.156.1/build/three.module.js';
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x111111);
+
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 10;
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // Conductor
+    const conductorGeometry = new THREE.CylinderGeometry(0.2, 0.2, 8, 32);
+    const conductorMaterial = new THREE.MeshBasicMaterial({ color: 0xaaaaaa });
+    const conductor = new THREE.Mesh(conductorGeometry, conductorMaterial);
+    conductor.rotation.z = Math.PI / 2;
+    scene.add(conductor);
+
+    // Electron particles
+    const particleCount = 100;
+    const particles = [];
+    const radius = 0.1;
+    const spacing = 8 / particleCount;
+
+    for (let i = 0; i < particleCount; i++) {
+      const geometry = new THREE.SphereGeometry(radius, 16, 16);
+      const material = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+      const sphere = new THREE.Mesh(geometry, material);
+      sphere.position.x = -4 + i * spacing;
+      sphere.position.y = (Math.random() - 0.5) * 0.2;
+      particles.push(sphere);
+      scene.add(sphere);
+    }
+
+    // Animation loop
+    function animate() {
+      requestAnimationFrame(animate);
+      particles.forEach(p => {
+        p.position.x += 0.02;
+        if (p.position.x > 4) p.position.x = -4;
+      });
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
 # Welcome to My Personal Website
 
 Hi there! I'm {{ site.author }}, an Electronics Engineer passionate about technology, programming, and sharing knowledge.
@@ -13,7 +61,7 @@ Hi there! I'm {{ site.author }}, an Electronics Engineer passionate about techno
 - [{{ post.title }}]({{ post.url }}) - {{ post.date | date: "%B %-d, %Y" }}
 {% endfor %}
 
-[View all posts](/blog) | [View my projects](/projects)
+[View all posts](/archive) | [View my projects](/projects)
 
 ## Get In Touch
 
