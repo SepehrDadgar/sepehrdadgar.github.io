@@ -10,7 +10,7 @@ tags:
   - e-ink
   - calendar
 ---
-![](/assets/images/wall%20calendar%20project/Pasted%20image%2020250727223147.png)
+![](/assets/images/Pasted%20image%2020250727223147.png)
 the whole thing doesn't need to have an e-ink display (since they're expensive)
 a small e-ink display could update once a day and show the date so that a battery pack can power it for a long time
-![](Pasted%20image%2020250727223302.png)
+![](/assets/images/Pasted%20image%2020250727223302.png)

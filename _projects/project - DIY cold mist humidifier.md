@@ -11,7 +11,7 @@ tags:
 ---
 
 # DIY cold mist humidifier
-![](Pasted%20image%2020250727222152.png)
+![](/assets/images/Pasted%20image%2020250727222152.png)
 **Modular Cold Mist Humidifier Project**
 Cold mist humidifiers can be expensive, but we can make our own since cold mist modules are available at an affordable price. However, these modules are tricky to adjust in water, as the water level above the module needs to be maintained at a specific height for proper operation.
 
