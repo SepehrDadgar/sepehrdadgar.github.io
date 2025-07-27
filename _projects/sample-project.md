@@ -1,11 +1,12 @@
 ---
 layout: project
-title: "Sample Project"
+title: Sample Project
 date: 2025-07-27
-description: "A brief description of the sample project"
-github: "yourusername/sample-project"
-live_demo: "https://example.com/sample"
-tags: [electronics, programming, embedded]
+description: A brief description of the sample project
+tags:
+  - electronics
+  - programming
+  - embedded
 ---
 
 ## Project Overview
