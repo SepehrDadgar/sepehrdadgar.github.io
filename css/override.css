@@ -44,43 +44,13 @@ hr {
   opacity: 0.3;
 }
 
-/*this part is from the internet*/
-/* Light theme (default) */
-:root {
-  --bg-color: #ffffff;
-  --text-color: #000000;
-  --link-color: #1a0dab;
-  --button-bg: #f0f0f0;
-  --button-text: #333333;
-}
 
-/* Dark theme */
-[data-theme="dark"] {
-  --bg-color: #121212;
-  --text-color: #e0e0e0;
-  --link-color: #bb86fc;
-  --button-bg: #333333;
-  --button-text: #f0f0f0;
-}
 
 body {
-  background-color: var(--bg-color);
-  color: var(--text-color);
   font-family: 'Vazir', sans-serif;
 }
 
-a {
-  color: var(--link-color);
-}
 
-#theme-toggle {
-  background-color: var(--button-bg);
-  color: var(--button-text);
-  border: none;
-  padding: 10px;
-  cursor: pointer;
-  font-size: 16px;
-}
 
 html[lang="fa"] body {
   font-family: 'Vazir', sans-serif;
