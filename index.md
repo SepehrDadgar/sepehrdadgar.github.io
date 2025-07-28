@@ -12,7 +12,7 @@ Hi there! I'm {{ site.author }}, an Electronics Engineer passionate about techno
 نه پای رفتن از این ناحیت نه جای مُقام
 
 ___
-... and then there is necessity and the needs of the whole world, of which you are a part of. whatever the nature of the whole does, and whatever serves to maintain it, it is good for every part of nature. the world is maintained by change--in elements and in the things the compose. that should be enough for you; treat it as an axiom. ... -Meditations Book 2, 3
+... and then there is necessity and the needs of the whole world, of which you are a part of. whatever the nature of the whole does, and whatever serves to maintain it, it is good for every part of nature. the world is maintained by change--in elements and in the things they compose. that should be enough for you; treat it as an axiom. ... -Meditations Book 2, 3
 ## Latest Blog Posts
 
 {% for post in site.posts limit:3 %}
