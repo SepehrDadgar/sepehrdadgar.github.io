@@ -1,7 +1,7 @@
 ---
 layout: project
 title: project - wall calendar
-date: 1404-05-05
+date: 2025-07-27
 description: a calendar that shows the date an month view with an e-ink display embedded into a whiteboard
 tags:
   - electronics

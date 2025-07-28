@@ -1,7 +1,7 @@
 ---
 layout: project
 title: DIY cold mist humidifier
-date: 1404-05-05
+date: 2025-07-27
 description: diy cost effective cold mist humidifier that can plug onto any container
 tags:
   - electronics
