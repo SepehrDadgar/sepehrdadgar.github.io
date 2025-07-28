@@ -5,7 +5,8 @@ permalink: /cv/
 ---
 # Sepehr KhabazDadgar
 Electronics Engineer
-![112x135](ImageGlass_Y1OpkdC7gE.jpg)
+
+![](/assets/images/ImageGlass_Y1OpkdC7gE.jpg)
 ## Contact
 - Email: [sepehrkhabazdadgar@gmail.com](mailto:sepehrkhabazdadgar@gmail.com)
 - GitHub: [github.com/SepehrDadgar](https://github.com/SepehrDadgar)
