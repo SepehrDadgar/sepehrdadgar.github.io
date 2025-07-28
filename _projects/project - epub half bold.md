@@ -8,7 +8,7 @@ tags:
   - epub
   - adhd
   - dyslexia
-github: https://github.com/SepehrDadgar/epub_half_bold
+github: SepehrDadgar/epub_half_bold
 ---
 # Epub Half bold
 made this project when I couldn't find something that turn half the letters in a word to bold to help with people with ADHD and dyslexia read better 
@@ -17,4 +17,4 @@ however left the project unfinished since I found out that a lot of epub readers
 
 but the code works to a good degree
 
-[github link](https://github.com/SepehrDadgar/epub_half_bold)
+

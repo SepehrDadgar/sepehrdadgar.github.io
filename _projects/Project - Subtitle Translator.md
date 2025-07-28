@@ -8,7 +8,7 @@ tags:
   - subtitle
   - farsi_subtitle
   - translation
-github: https://github.com/SepehrDadgar/free_srt_translator
+github: SepehrDadgar/free_srt_translator
 ---
 # Subtitle Translator
 
@@ -28,4 +28,4 @@ turns out there is a free version of google translate API and its the API for th
 so i just tricked the request limit by combining a number of lines together and when the translation came back i would separate them and it would work
 
 I don't know about the morality of what I'm doing right now but doing this is free now 👍
-[github link](https://github.com/SepehrDadgar/free_srt_translator)
+
