@@ -36,6 +36,52 @@
             <a class="page-link" href="{{ "/archive" | relative_url }}">Blog</a>
             <a class="page-link" href="{{ "/projects/" | relative_url }}">Projects</a>
             <a class="page-link" href="{{ "/cv/" | relative_url }}">CV</a>
+              <!--i got this code below from the internet-->
+<button id="theme-toggle" aria-label="Toggle dark mode">
+  <span id="theme-icon">🌙</span> <!-- Default to moon icon for dark mode -->
+  <span id="theme-text">Dark Mode</span>
+</button>
+
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const toggle = document.getElementById("theme-toggle");
+    const icon = document.getElementById("theme-icon");
+    const text = document.getElementById("theme-text");
+
+    // Check for saved user preference
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme) {
+      document.documentElement.setAttribute("data-theme", savedTheme);
+      updateToggle(savedTheme);
+    } else {
+      // Default to system preference
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const defaultTheme = prefersDark ? "dark" : "light";
+      document.documentElement.setAttribute("data-theme", defaultTheme);
+      updateToggle(defaultTheme);
+    }
+
+    // Toggle theme on button click
+    toggle.addEventListener("click", () => {
+      const currentTheme = document.documentElement.getAttribute("data-theme");
+      const newTheme = currentTheme === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", newTheme);
+      localStorage.setItem("theme", newTheme);
+      updateToggle(newTheme);
+    });
+
+    function updateToggle(theme) {
+      if (theme === "dark") {
+        icon.textContent = "☀️"; // Sun icon for light mode
+        text.textContent = "Light Mode";
+      } else {
+        icon.textContent = "🌙"; // Moon icon for dark mode
+        text.textContent = "Dark Mode";
+      }
+    }
+  });
+</script>
           </div>
         </nav>
       </div>
