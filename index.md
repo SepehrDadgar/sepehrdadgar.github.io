@@ -6,7 +6,9 @@ title: Home
 # Welcome to My Personal Website
 
 Hi there! I'm {{ site.author }}, an Electronics Engineer passionate about technology, programming, and sharing knowledge.
+
 مرا نه دولت وصل و نه احتمال فراق
+
 نه پای رفتن از این ناحیت نه جای مُقام
 
 ___
