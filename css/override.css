@@ -66,6 +66,7 @@ hr {
 body {
   background-color: var(--bg-color);
   color: var(--text-color);
+  font-family: 'Vazir', sans-serif;
 }
 
 a {
@@ -79,4 +80,8 @@ a {
   padding: 10px;
   cursor: pointer;
   font-size: 16px;
+}
+
+html[lang="fa"] body {
+  font-family: 'Vazir', sans-serif;
 }
