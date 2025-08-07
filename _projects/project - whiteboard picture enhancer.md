@@ -9,7 +9,7 @@ tags:
   - whiteboard
   - تمیز_کردن_تصویر
 github: SepehrDadgar/whiteboard-enhancer
-live-demo: sepehrdadgar.github.io/assets/html/whiteboard-enhacer
+live_demo: sepehrdadgar.github.io/assets/html/whiteboard-enhancer
 ---
 
 
