@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Whiteboard Image Preprocessor</title>
+  <style>
+    body { background: #121212; color: #eee; font-family: sans-serif; text-align: center; }
+    canvas { margin: 10px; border: 1px solid #555; }
+    #images { display: flex; flex-wrap: wrap; justify-content: center; }
+  </style>
+</head>
+<body>
+  <h1>Whiteboard Image Preprocessor (OpenCV.js)</h1>
+  <input type="file" id="fileInput" accept="image/*" />
+  <div id="images"></div>
+
+  <!-- OpenCV.js -->
+  <script async src="https://docs.opencv.org/4.8.0/opencv.js" onload="onOpenCvReady();" type="text/javascript"></script>
+  <script>
+    function onOpenCvReady() {
+      document.getElementById('fileInput').addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const img = new Image();
+        const reader = new FileReader();
+
+        reader.onload = () => {
+          img.src = reader.result;
+        };
+
+        img.onload = () => {
+          const src = cv.imread(img);
+          const dst = preprocessWhiteboardImage(src);
+          displayImages([['Grayscale', dst.gray], ['Adaptive Threshold', dst.binary], ['Cleaned Output', dst.cleaned]]);
+          src.delete(); // free memory
+        };
+
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function preprocessWhiteboardImage(src) {
+      // Upscale
+      let image = new cv.Mat();
+      cv.resize(src, image, new cv.Size(0, 0), 2.0, 2.0, cv.INTER_CUBIC);
+
+      // Convert to grayscale
+      let gray = new cv.Mat();
+      cv.cvtColor(image, gray, cv.COLOR_RGBA2GRAY);
+
+      // Apply CLAHE
+      let clahe = new cv.CLAHE(3.0, new cv.Size(8, 8));
+      let enhanced = new cv.Mat();
+      clahe.apply(gray, enhanced);
+
+      // Remove background with closing
+      let kernelBg = cv.getStructuringElement(cv.MORPH_ELLIPSE, new cv.Size(25, 25));
+      let background = new cv.Mat();
+      cv.morphologyEx(enhanced, background, cv.MORPH_CLOSE, kernelBg);
+
+      // Divide enhanced by background
+      let contrast = new cv.Mat();
+      cv.divide(enhanced, background, contrast, 255);
+
+      // Blur to smooth lighting
+      let blurred = new cv.Mat();
+      cv.GaussianBlur(contrast, blurred, new cv.Size(3, 3), 0);
+
+      // Adaptive threshold
+      let binary = new cv.Mat();
+      cv.adaptiveThreshold(blurred, binary, 255, cv.ADAPTIVE_THRESH_GAUSSIAN_C, cv.THRESH_BINARY_INV, 11, 5);
+
+      // Denoise (median blur + opening)
+      let median = new cv.Mat();
+      cv.medianBlur(binary, median, 3);
+
+      let kernel = cv.getStructuringElement(cv.MORPH_RECT, new cv.Size(2, 2));
+      let opened = new cv.Mat();
+      cv.morphologyEx(median, opened, cv.MORPH_OPEN, kernel);
+
+      // Remove small components
+      let labels = new cv.Mat(), stats = new cv.Mat(), centroids = new cv.Mat();
+      let numLabels = cv.connectedComponentsWithStats(opened, labels, stats, centroids);
+
+      let cleaned = new cv.Mat.zeros(opened.rows, opened.cols, cv.CV_8UC1);
+      for (let i = 1; i < numLabels; i++) {
+        let area = stats.intPtr(i, cv.CC_STAT_AREA)[0];
+        if (area >= 30) {
+          for (let y = 0; y < labels.rows; y++) {
+            for (let x = 0; x < labels.cols; x++) {
+              if (labels.intAt(y, x) === i) {
+                cleaned.ucharPtr(y, x)[0] = 255;
+              }
+            }
+          }
+        }
+      }
+
+      // Invert
+      let cleanedInverted = new cv.Mat();
+      cv.bitwise_not(cleaned, cleanedInverted);
+
+      // Clean up
+      image.delete(); enhanced.delete(); background.delete(); contrast.delete();
+      blurred.delete(); median.delete(); opened.delete(); labels.delete(); stats.delete(); centroids.delete();
+
+      return {
+        gray: gray,
+        binary: binary,
+        cleaned: cleanedInverted
+      };
+    }
+
+    function displayImages(imageMap) {
+      const container = document.getElementById('images');
+      container.innerHTML = '';
+      for (const [title, mat] of imageMap) {
+        const canvas = document.createElement('canvas');
+        cv.imshow(canvas, mat);
+        const caption = document.createElement('div');
+        caption.textContent = title;
+        caption.style.marginTop = '-5px';
+        const wrapper = document.createElement('div');
+        wrapper.appendChild(canvas);
+        wrapper.appendChild(caption);
+        container.appendChild(wrapper);
+        mat.delete(); // free memory
+      }
+    }
+  </script>
+</body>
+</html>
