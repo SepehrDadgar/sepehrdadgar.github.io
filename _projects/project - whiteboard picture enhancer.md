@@ -12,8 +12,8 @@ github: SepehrDadgar/whiteboard-enhancer
 live_demo: whiteboard-enhancer
 ---
 
-
-# چجوری عکس تخته‌سفید رو تمیز کنیم با Python و OpenCV
+ورژن جاوا اسکریپت هم توی بخش لایو دمو اضافه کردم
+# چگونه با پایتون عکس های تخته وایت‌برد رو تمیز کنیم
 
 یه کد پایتون میخوایم بنویسیم که عکس تخته‌سفید رو می‌گیره و نویز و لکه‌هاشو پاک می‌کنه، نوشته‌ها رو واضح‌تر می‌کنه، و پس‌زمینه رو سفید می‌کنه. اینطوری می‌تونی عکسای تخته‌سفید رو راحت‌تر بخونی یا برای OCR استفاده کنی.
 
@@ -121,7 +121,7 @@ def preprocess_whiteboard_image(image_path, save_path='enhanced_whiteboard.png',
 
 ## هر قسمت کد چه کاری می‌کنه؟
 
-### ۱. باز کردن عکس و بزرگ کردن اگه خواستی
+### ۱. باز کردن و بزرگ کردن عکس
 
 ```python
 image = cv2.imread(image_path)
@@ -147,7 +147,7 @@ enhanced = clahe.apply(gray)
 
 ---
 
-### ۳. پاک کردن پس‌زمینه با یه نوع فیلتر مورفولوژی
+### ۳. پاک کردن پس‌زمینه با فیلتر مورفولوژی
 
 ```python
 kernel_bg = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))
