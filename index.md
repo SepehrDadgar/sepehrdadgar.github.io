@@ -4,6 +4,7 @@ title: Home
 ---
 
 # Welcome to My Personal Website
+<iframe src="model-box.html" width="320" height="320" frameborder="0"></iframe>
 
 Hi there! I'm {{ site.author }}, an Electronics Engineer passionate about technology, programming, and sharing knowledge.
 

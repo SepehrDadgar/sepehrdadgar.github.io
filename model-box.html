@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>3D Model Box</title>
+<style>
+  body {
+    margin: 0;
+    background: transparent;
+  }
+  #model-box {
+    width: 300px; /* change size here */
+    height: 300px;
+    border: 2px solid #333;
+    overflow: hidden;
+  }
+  canvas {
+    display: block;
+  }
+</style>
+</head>
+<body>
+<div id="model-box"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.159.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.159.0/examples/js/loaders/OBJLoader.js"></script>
+
+<script>
+  const box = document.getElementById('model-box');
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, box.clientWidth / box.clientHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(box.clientWidth, box.clientHeight);
+  box.appendChild(renderer.domElement);
+
+  // Light
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+  scene.add(ambientLight);
+  const dirLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  dirLight.position.set(5, 10, 5);
+  scene.add(dirLight);
+
+  // Load .OBJ
+  const loader = new THREE.OBJLoader();
+  loader.load(
+    'model.obj', // path to your .obj
+    function (object) {
+      object.scale.set(1, 1, 1);
+      object.position.y = -0.5;
+      scene.add(object);
+
+      // Floating animation
+      let clock = new THREE.Clock();
+      function animate() {
+        requestAnimationFrame(animate);
+        let t = clock.getElapsedTime();
+        object.position.y = Math.sin(t * 2) * 0.1; // hover effect
+        object.rotation.y += 0.01;
+        renderer.render(scene, camera);
+      }
+      animate();
+    },
+    xhr => console.log((xhr.loaded / xhr.total) * 100 + '% loaded'),
+    err => console.error('Error loading OBJ', err)
+  );
+
+  camera.position.z = 3;
+</script>
+</body>
+</html>
