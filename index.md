@@ -73,4 +73,13 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
       text-align: center;
     }
   }
+
+iframe {
+    margin: 0 auto;
+}
+
+iframe {
+    display: block;
+    border-style:none;
+}
 </style>
