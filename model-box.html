@@ -132,7 +132,7 @@ cy=dist*Math.sin(pitch),cz=dist*Math.cos(pitch)*Math.cos(yaw);
 let up=[0,1,0],z=normalize([cx,cy,cz]),x=normalize(cross(up,z)),y=cross(z,x);
 return {view:[x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0, -dot(x,[cx,cy,cz]),-dot(y,[cx,cy,cz]),-dot(z,[cx,cy,cz]),1], cam:[cx,cy,cz]}}
 
-gl.enable(gl.DEPTH_TEST); gl.clearColor(1.0, 1.0, 1.0, 1);
+gl.enable(gl.DEPTH_TEST); gl.clearColor(0.992, 0.992, 0.992, 1.0);
 ;
 
 fetch(OBJ_URL).then(r=>r.text()).then(text=>{
