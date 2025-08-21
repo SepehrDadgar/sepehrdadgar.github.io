@@ -6,13 +6,7 @@ title: Home
 
 
   <div id="container"></div>
-    <div id="navbar">
-            <a class="page-link" href="{{ "/" | relative_url }}">Home</a>
-            <a class="page-link" href="{{ "/archive" | relative_url }}">Blog</a>
-            <a class="page-link" href="{{ "/projects/" | relative_url }}">Projects</a>
-            <a class="page-link" href="{{ "/cv/" | relative_url }}">CV</a>
-    </div>
-  </div>
+
 
 Hi there! I'm {{ site.author }}, an Electronics Engineer passionate about technology, programming, and sharing knowledge.
 
