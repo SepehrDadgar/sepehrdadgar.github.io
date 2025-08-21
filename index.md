@@ -101,6 +101,7 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
       height: 400px;
       position: relative;
       overflow: hidden; /* keeps it from going over other elements */
+      margin: 0 auto;
     }
 
     canvas {
