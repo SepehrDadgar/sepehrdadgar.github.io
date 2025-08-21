@@ -80,7 +80,7 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
       background: #fdfdfd;
       font-family: sans-serif;
     }
-    
+
 
     nav {
       margin: 20px;
@@ -103,6 +103,11 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
 
     canvas {
       display: block;
+    }
+
+    .post-title {
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
     }
 </style>
 
