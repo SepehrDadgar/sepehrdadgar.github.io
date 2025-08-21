@@ -79,10 +79,8 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
       margin: 0;
       background: #fdfdfd;
       font-family: sans-serif;
-      /*display: flex;
-      flex-direction: column;*/
-      align-items: center;
     }
+    
 
     nav {
       margin: 20px;
