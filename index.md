@@ -97,8 +97,8 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
     }
 
     #container {
-      width: 400px;
-      height: 400px;
+      width: 300px;
+      height: 300px;
       position: relative;
       overflow: hidden; /* keeps it from going over other elements */
       margin: 0 auto;
