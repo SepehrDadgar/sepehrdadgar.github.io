@@ -7,9 +7,27 @@ title: Home
 
   <div id="tesseract-container">
     <div id="navbar">
-      <a href="#home">Home</a>
-      <a href="#projects">Projects</a>
-      <a href="#about">About</a>
+<div class="post_navi">
+  {%- if page.previous.url -%}
+  <a class="post_navi-item nav_prev" href="{{ page.previous.url }}" title="{{ page.previous.title }}">
+    <div class="post_navi-arrow">&lt;</div><div class="post_navi-label">Previous Post</div><div><span>{{ page.previous.title }}</span></div>
+  </a>
+  {%- else -%}
+  <a class="post_navi-item nav_prev" href="{{ 'archive.html' | absolute_url }}" title="Blog Archive">
+    <div class="post_navi-arrow">&lt;</div><div class="post_navi-label">Blog Archive</div><div><span>Archive of all previous blog posts</span></div>
+  </a>
+  {%- endif -%}
+  {%- if page.next.url -%}
+  <a class="post_navi-item nav_next" href="{{ page.next.url }}" title="{{ page.next.title }}">
+    <div class="post_navi-arrow">&gt;</div><div class="post_navi-label">Next Post</div><div><span>{{ page.next.title }}</span></div>
+  </a>
+  {%- else -%}
+  <a class="post_navi-item nav_next" href="{{ 'archive.html' | absolute_url }}" title="Blog Archive">
+    <div class="post_navi-arrow">&gt;</div><div class="post_navi-label">Blog Archive</div><div><span>Archive of all previous blog posts</span></div>
+  </a>
+  {%- endif -%}
+
+</div>
     </div>
   </div>
 
@@ -100,9 +118,9 @@ body {
       display: flex;
       justify-content: center;
       align-items: center;
-      border: 2px solid #ddd;
+      border: 0px solid #ddd;
       border-radius: 10px;
-      background: #fff;
+      background: #fdfdfd;
       overflow: hidden; /* keeps animation inside */
     }
 
@@ -134,72 +152,64 @@ body {
     }
 </style>
 
-<!-- Three.js -->
-  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.156.1/build/three.min.js"></script>
   <script>
-    const container = document.getElementById("tesseract-container");
+    const container = document.getElementById("container");
+
+    // scene
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+
+    // camera
+    const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+    camera.position.z = 5;
+
+    // renderer
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
     container.appendChild(renderer.domElement);
 
-    camera.position.z = 6;
-
-    // Tesseract vertices (4D projected into 3D)
-    const vertices4D = [];
-    for (let x = -1; x <= 1; x += 2) {
-      for (let y = -1; y <= 1; y += 2) {
-        for (let z = -1; z <= 1; z += 2) {
-          for (let w = -1; w <= 1; w += 2) {
-            vertices4D.push([x, y, z, w]);
-          }
-        }
-      }
+    // function to create a cube wireframe at scale
+    function createCube(scale) {
+      const geometry = new THREE.BoxGeometry(scale, scale, scale);
+      const edges = new THREE.EdgesGeometry(geometry);
+      const material = new THREE.LineBasicMaterial({ color: 0x3333ff });
+      return new THREE.LineSegments(edges, material);
     }
 
-    function project4Dto3D([x, y, z, w], angle) {
-      const cos = Math.cos(angle);
-      const sin = Math.sin(angle);
-      const xRot = x * cos - w * sin;
-      const wRot = x * sin + w * cos;
-      const zRot = z * cos - y * sin;
-      const yRot = z * sin + y * cos;
-      return new THREE.Vector3(xRot, yRot, wRot);
+    // tesseract = inner cube + outer cube + connecting edges
+    const innerCube = createCube(1);
+    const outerCube = createCube(2);
+
+    scene.add(innerCube);
+    scene.add(outerCube);
+
+    // connect edges between inner and outer cubes
+    const points = [];
+    const innerVertices = innerCube.geometry.attributes.position.array;
+    const outerVertices = outerCube.geometry.attributes.position.array;
+
+    for (let i = 0; i < innerVertices.length; i += 3) {
+      points.push(
+        new THREE.Vector3(innerVertices[i], innerVertices[i+1], innerVertices[i+2]),
+        new THREE.Vector3(outerVertices[i], outerVertices[i+1], outerVertices[i+2])
+      );
     }
 
-    const material = new THREE.LineBasicMaterial({ color: 0x3333ff });
-    const group = new THREE.Group();
+    const connectionGeometry = new THREE.BufferGeometry().setFromPoints(points);
+    const connectionMaterial = new THREE.LineBasicMaterial({ color: 0x666666 });
+    const connections = new THREE.LineSegments(connectionGeometry, connectionMaterial);
+    scene.add(connections);
 
-    let angle = 0;
-    const edges = [];
-    for (let i = 0; i < vertices4D.length; i++) {
-      for (let j = i + 1; j < vertices4D.length; j++) {
-        const diff = vertices4D[i].map((v, k) => Math.abs(v - vertices4D[j][k]));
-        if (diff.reduce((a, b) => a + b, 0) === 2) {
-          edges.push([i, j]);
-        }
-      }
-    }
-
-    function createTesseract() {
-      group.clear();
-      const verts3D = vertices4D.map(v => project4Dto3D(v, angle));
-      edges.forEach(([i, j]) => {
-        const geometry = new THREE.BufferGeometry().setFromPoints([verts3D[i], verts3D[j]]);
-        const line = new THREE.Line(geometry, material);
-        group.add(line);
-      });
-    }
-
-    scene.add(group);
-
+    // animate
     function animate() {
       requestAnimationFrame(animate);
-      angle += 0.01;
-      createTesseract();
+      innerCube.rotation.x += 0.01;
+      innerCube.rotation.y += 0.01;
+      outerCube.rotation.x += 0.01;
+      outerCube.rotation.y += 0.01;
+      connections.rotation.x += 0.01;
+      connections.rotation.y += 0.01;
       renderer.render(scene, camera);
     }
-
     animate();
   </script>
