@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Sepehr's Blog😐🤞
+title: Sepehr's Blog 🙄 ☜(ﾟヮﾟ☜)
 ---
 
 
@@ -79,8 +79,8 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
       margin: 0;
       background: #fdfdfd;
       font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
+      /*display: flex;
+      flex-direction: column;*/
       align-items: center;
     }
 
