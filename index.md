@@ -4,7 +4,9 @@ title: Home
 ---
 
 # Welcome to My Personal Website
-<iframe src="model-box.html" width="320" height="320" frameborder="0"></iframe>
+  <div class="model-box">
+    <canvas id="modelCanvas" width="320" height="320"></canvas>
+  </div>
 
 Hi there! I'm {{ site.author }}, an Electronics Engineer passionate about technology, programming, and sharing knowledge.
 
@@ -74,12 +76,68 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
     }
   }
 
-iframe {
-    margin: 0 auto;
-}
+    body {
+      background: #fdfdfd;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
 
-iframe {
-    display: block;
-    border-style:none;
-}
+    /* container with visible overflow */
+    .model-box {
+      width: 320px;
+      height: 320px;
+      position: relative;
+      overflow: visible;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
 </style>
+
+  <script type="module">
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js";
+    import { OBJLoader } from "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/OBJLoader.js";
+
+    const canvas = document.getElementById("modelCanvas");
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setClearColor(0xfdfdfd, 1);
+
+    // Lighting
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(3, 3, 5);
+    scene.add(light);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+    // Load OBJ model
+    const loader = new OBJLoader();
+    loader.load("model.obj", (object) => {
+      object.traverse((child) => {
+        if (child.isMesh) {
+          child.material = new THREE.MeshStandardMaterial({ color: 0x444444 });
+        }
+      });
+
+      object.scale.set(1.2, 1.2, 1.2); // slightly oversized to peek out
+      object.rotation.x = 0.5;
+      scene.add(object);
+
+      animate(object);
+    });
+
+    camera.position.z = 4;
+
+    function animate(model) {
+      requestAnimationFrame(() => animate(model));
+      model.rotation.y += 0.01;
+      renderer.render(scene, camera);
+    }
+  </script>
