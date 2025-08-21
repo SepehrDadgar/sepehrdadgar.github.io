@@ -5,29 +5,12 @@ title: Home
 
 
 
-  <div id="tesseract-container">
+  <div id="container"></div>
     <div id="navbar">
-<div class="post_navi">
-  {%- if page.previous.url -%}
-  <a class="post_navi-item nav_prev" href="{{ page.previous.url }}" title="{{ page.previous.title }}">
-    <div class="post_navi-arrow">&lt;</div><div class="post_navi-label">Previous Post</div><div><span>{{ page.previous.title }}</span></div>
-  </a>
-  {%- else -%}
-  <a class="post_navi-item nav_prev" href="{{ 'archive.html' | absolute_url }}" title="Blog Archive">
-    <div class="post_navi-arrow">&lt;</div><div class="post_navi-label">Blog Archive</div><div><span>Archive of all previous blog posts</span></div>
-  </a>
-  {%- endif -%}
-  {%- if page.next.url -%}
-  <a class="post_navi-item nav_next" href="{{ page.next.url }}" title="{{ page.next.title }}">
-    <div class="post_navi-arrow">&gt;</div><div class="post_navi-label">Next Post</div><div><span>{{ page.next.title }}</span></div>
-  </a>
-  {%- else -%}
-  <a class="post_navi-item nav_next" href="{{ 'archive.html' | absolute_url }}" title="Blog Archive">
-    <div class="post_navi-arrow">&gt;</div><div class="post_navi-label">Blog Archive</div><div><span>Archive of all previous blog posts</span></div>
-  </a>
-  {%- endif -%}
-
-</div>
+            <a class="page-link" href="{{ "/" | relative_url }}">Home</a>
+            <a class="page-link" href="{{ "/archive" | relative_url }}">Blog</a>
+            <a class="page-link" href="{{ "/projects/" | relative_url }}">Projects</a>
+            <a class="page-link" href="{{ "/cv/" | relative_url }}">CV</a>
     </div>
   </div>
 
@@ -99,56 +82,35 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
     }
   }
 
-body {
+    body {
       margin: 0;
+      background: #fdfdfd;
+      font-family: sans-serif;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       align-items: center;
-      height: 100vh;
-      background: #fdfdfd;
-      font-family: Arial, sans-serif;
     }
 
-    /* Container for both animation + nav */
-    #tesseract-container {
-      position: relative;
+    nav {
+      margin: 20px;
+    }
+
+    nav a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+    }
+
+    #container {
       width: 400px;
       height: 400px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      border: 0px solid #ddd;
-      border-radius: 10px;
-      background: #fdfdfd;
-      overflow: hidden; /* keeps animation inside */
+      position: relative;
+      overflow: hidden; /* keeps it from going over other elements */
     }
 
     canvas {
       display: block;
-    }
-
-    /* Navbar inside the container */
-    #navbar {
-      position: absolute;
-      bottom: 10px;
-      display: flex;
-      gap: 15px;
-      z-index: 10;
-    }
-
-    #navbar a {
-      text-decoration: none;
-      color: #333;
-      font-weight: bold;
-      background: rgba(255,255,255,0.8);
-      padding: 5px 10px;
-      border-radius: 5px;
-      transition: background 0.3s;
-    }
-
-    #navbar a:hover {
-      background: rgba(200,200,200,0.9);
     }
 </style>
 
