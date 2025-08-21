@@ -7,6 +7,7 @@ title: Home
 
 
   <div class="model-box">
+    <div class="hud">Tesseract • Rotating in 4D (XW & YZ)</div>
     <canvas id="modelCanvas"></canvas>
   </div>
 
@@ -78,24 +79,25 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
     }
   }
 
-    body {
+ body {
       background: #fdfdfd;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
       margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
     }
 
     .model-box {
       width: 320px;
       height: 320px;
       position: relative;
-      overflow: visible; /* allow 3D object to spill out */
-      border: 0px solid #ccc;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      overflow: visible; /* allow subtle spillover */
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      background: #fdfdfd;
     }
 
     canvas {
@@ -103,60 +105,143 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 400px;   /* larger than the box */
+      width: 400px;   /* visually larger than the box */
       height: 400px;
       display: block;
-      pointer-events: none; /* don’t block text or clicks */
+      pointer-events: none; /* don't block interactions nearby */
+    }
+
+    .hud {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      font-size: 12px;
+      padding: 6px 8px;
+      background: rgba(0,0,0,0.06);
+      border-radius: 8px;
+      color: #111;
+      user-select: none;
     }
 </style>
 
- <script type="module">
+<script type="module">
     import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js";
-    import { OBJLoader } from "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/OBJLoader.js";
 
+    // --- Renderer / Scene / Camera ---
     const canvas = document.getElementById("modelCanvas");
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    // IMPORTANT: setSize must match the CSS px size above (400x400)
     renderer.setSize(400, 400, false);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0xfdfdfd, 1);
 
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    camera.position.z = 4;
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 100);
+    camera.position.set(0, 0, 5);
 
-    // Lights
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(3, 3, 5);
-    scene.add(light);
-    scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-
-    // Test Cube (always shows up)
-    const geometry = new THREE.BoxGeometry();
-    const material = new THREE.MeshStandardMaterial({ color: 0x444444 });
-    const cube = new THREE.Mesh(geometry, material);
-    scene.add(cube);
-
-    // Load OBJ model
-    const loader = new OBJLoader();
-    loader.load(
-      "Tesseract.obj", // <-- replace with your model file path
-      (obj) => {
-        obj.scale.set(0.5, 0.5, 0.5); // adjust size if too big/small
-        obj.position.set(0, 0, 0);
-        scene.add(obj);
-      },
-      (xhr) => {
-        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-      },
-      (error) => {
-        console.error("Error loading OBJ:", error);
+    // --- Tesseract (4D hypercube) setup ---
+    // 16 vertices: all combinations of (+/-1, +/-1, +/-1, +/-1)
+    const verts4D = [];
+    for (let w of [-1, 1]) {
+      for (let z of [-1, 1]) {
+        for (let y of [-1, 1]) {
+          for (let x of [-1, 1]) {
+            verts4D.push([x, y, z, w]);
+          }
+        }
       }
-    );
+    }
 
-    // Animate
+    // Build edge list: connect vertices that differ by exactly one coordinate
+    const edges = [];
+    for (let i = 0; i < verts4D.length; i++) {
+      for (let j = i + 1; j < verts4D.length; j++) {
+        const a = verts4D[i], b = verts4D[j];
+        let diff = 0;
+        for (let k = 0; k < 4; k++) if (a[k] !== b[k]) diff++;
+        if (diff === 1) edges.push([i, j]);
+      }
+    }
+    // edges should be 32 pairs for a tesseract
+
+    // 4D rotation helpers: rotate in a coordinate plane (ab) with angle t
+    function rotate4D(v, a, b, t) {
+      const s = Math.sin(t), c = Math.cos(t);
+      const out = v.slice();
+      const va = v[a], vb = v[b];
+      out[a] = va * c - vb * s;
+      out[b] = va * s + vb * c;
+      return out;
+    }
+
+    // Project 4D -> 3D with perspective on W
+    // The larger 'perspD' is, the weaker the 4D perspective effect.
+    function project4Dto3D(v4, perspD = 3.0) {
+      const [x, y, z, w] = v4;
+      const denom = (perspD - w);
+      const s = 1.0 / (denom !== 0 ? denom : 1e-6);
+      return [x * s, y * s, z * s];
+    }
+
+    // Create line geometry (will update each frame)
+    const linePositions = new Float32Array(edges.length * 2 * 3);
+    const lineGeom = new THREE.BufferGeometry();
+    lineGeom.setAttribute("position", new THREE.BufferAttribute(linePositions, 3));
+
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x444444, linewidth: 1 });
+    const wire = new THREE.LineSegments(lineGeom, lineMat);
+    wire.scale.set(1.4, 1.4, 1.4); // overall scale so it "breathes" out a bit
+    scene.add(wire);
+
+    // Optional soft light to give scene some depth (does not affect lines, but helps if you add meshes)
+    scene.add(new THREE.AmbientLight(0xffffff, 0.2));
+
+    // Animation: rotate in XW and YZ planes for a pleasing effect
+    let start = performance.now();
     function animate() {
-      requestAnimationFrame(animate);
-      cube.rotation.x += 0.01;
-      cube.rotation.y += 0.01;
+      const t = (performance.now() - start) * 0.001;
+      const angle1 = t * 0.7;  // XW plane
+      const angle2 = t * 0.9;  // YZ plane
+
+      // Compute transformed 3D points
+      const pts3 = [];
+      for (let v of verts4D) {
+        let r = v;
+        r = rotate4D(r, 0, 3, angle1); // rotate in (X=0, W=3)
+        r = rotate4D(r, 1, 2, angle2); // rotate in (Y=1, Z=2)
+        const p = project4Dto3D(r, 3.2); // tweak 4D perspective depth
+        pts3.push(p);
+      }
+
+      // Update line segment positions
+      let idx = 0;
+      for (let e of edges) {
+        const a = pts3[e[0]];
+        const b = pts3[e[1]];
+        linePositions[idx++] = a[0];
+        linePositions[idx++] = a[1];
+        linePositions[idx++] = a[2];
+        linePositions[idx++] = b[0];
+        linePositions[idx++] = b[1];
+        linePositions[idx++] = b[2];
+      }
+      lineGeom.attributes.position.needsUpdate = true;
+
+      // Gentle spin in 3D space so the projection also turns
+      wire.rotation.y = t * 0.3;
+      wire.rotation.x = Math.sin(t * 0.5) * 0.1;
+
       renderer.render(scene, camera);
+      requestAnimationFrame(animate);
     }
     animate();
+
+    // (Optional) If you ever want to make the container responsive:
+    // just update renderer size here. For this fixed 320 box + 400 canvas demo,
+    // we keep it static on purpose to preserve the subtle overflow.
+    // window.addEventListener("resize", () => {
+    //   renderer.setSize(400, 400, false);
+    //   camera.aspect = 1;
+    //   camera.updateProjectionMatrix();
+    // });
   </script>
