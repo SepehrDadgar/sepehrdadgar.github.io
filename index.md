@@ -8,7 +8,7 @@ title: Sepehr's Blog😐🤞
   <div id="container"></div>
 
 
-Hi there! I'm {{ site.author }}, an Electronics Engineer passionate about technology, programming, and sharing knowledge.
+Hi there! I'm {{ site.author }}, an Electronics Engineer.
 
 مرا نه دولت وصل و نه احتمال فراق
 
@@ -22,7 +22,6 @@ ___
 - [{{ post.title }}]({{ post.url }}) - {{ post.date | date: "%B %-d, %Y" }}
 {% endfor %}
 
-[View all posts](/archive) | [View my projects](/projects)
 
 ## Get In Touch
 
