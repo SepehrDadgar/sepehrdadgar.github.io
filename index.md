@@ -4,6 +4,8 @@ title: Home
 ---
 
 # Welcome to My Personal Website
+
+
   <div class="model-box">
     <canvas id="modelCanvas"></canvas>
   </div>
@@ -89,7 +91,8 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
       width: 320px;
       height: 320px;
       position: relative;
-      overflow: visible; /* allow spillover */
+      overflow: visible; /* allow canvas to spill out */
+      border: 1px solid #ccc;
     }
 
     canvas {
@@ -97,21 +100,19 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 400px;   /* larger than container */
-      height: 400px;  /* larger than container */
+      width: 400px;   /* visually larger */
+      height: 400px;
       display: block;
-      pointer-events: none; /* don’t block clicks on nearby text */
+      pointer-events: none; /* don’t block nearby elements */
     }
 </style>
 
-  <script type="module">
+ <script type="module">
     import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js";
-    import { OBJLoader } from "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/OBJLoader.js";
 
     const canvas = document.getElementById("modelCanvas");
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    renderer.setSize(400, 400); // match canvas size
-    renderer.setClearColor(0xfdfdfd, 1);
+    renderer.setSize(400, 400, false); // IMPORTANT: match canvas size
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
@@ -123,25 +124,17 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
     scene.add(light);
     scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
-    // Load model
-    const loader = new OBJLoader();
-    loader.load("model.obj", (object) => {
-      object.traverse((child) => {
-        if (child.isMesh) {
-          child.material = new THREE.MeshStandardMaterial({ color: 0x444444 });
-        }
-      });
+    // TEST CUBE (replace with OBJ loader later)
+    const geometry = new THREE.BoxGeometry();
+    const material = new THREE.MeshStandardMaterial({ color: 0x444444 });
+    const cube = new THREE.Mesh(geometry, material);
+    scene.add(cube);
 
-      object.scale.set(1.2, 1.2, 1.2);
-      object.rotation.x = 0.5;
-      scene.add(object);
-
-      animate(object);
-    });
-
-    function animate(model) {
-      requestAnimationFrame(() => animate(model));
-      model.rotation.y += 0.01;
+    function animate() {
+      requestAnimationFrame(animate);
+      cube.rotation.x += 0.01;
+      cube.rotation.y += 0.01;
       renderer.render(scene, camera);
     }
+    animate();
   </script>
