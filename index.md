@@ -5,7 +5,7 @@ title: Home
 
 # Welcome to My Personal Website
   <div class="model-box">
-    <canvas id="modelCanvas" width="320" height="320"></canvas>
+    <canvas id="modelCanvas"></canvas>
   </div>
 
 Hi there! I'm {{ site.author }}, an Electronics Engineer passionate about technology, programming, and sharing knowledge.
@@ -85,18 +85,22 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
       margin: 0;
     }
 
-    /* container with visible overflow */
     .model-box {
       width: 320px;
       height: 320px;
       position: relative;
-      overflow: visible;
+      overflow: visible; /* allow spillover */
     }
 
     canvas {
-      width: 100%;
-      height: 100%;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 400px;   /* larger than container */
+      height: 400px;  /* larger than container */
       display: block;
+      pointer-events: none; /* don’t block clicks on nearby text */
     }
 </style>
 
@@ -105,19 +109,21 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
     import { OBJLoader } from "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/OBJLoader.js";
 
     const canvas = document.getElementById("modelCanvas");
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setSize(400, 400); // match canvas size
+    renderer.setClearColor(0xfdfdfd, 1);
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    renderer.setClearColor(0xfdfdfd, 1);
+    camera.position.z = 4;
 
-    // Lighting
+    // Lights
     const light = new THREE.DirectionalLight(0xffffff, 1);
     light.position.set(3, 3, 5);
     scene.add(light);
     scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
-    // Load OBJ model
+    // Load model
     const loader = new OBJLoader();
     loader.load("model.obj", (object) => {
       object.traverse((child) => {
@@ -126,14 +132,12 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
         }
       });
 
-      object.scale.set(1.2, 1.2, 1.2); // slightly oversized to peek out
+      object.scale.set(1.2, 1.2, 1.2);
       object.rotation.x = 0.5;
       scene.add(object);
 
       animate(object);
     });
-
-    camera.position.z = 4;
 
     function animate(model) {
       requestAnimationFrame(() => animate(model));
