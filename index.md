@@ -3,12 +3,14 @@ layout: page
 title: Home
 ---
 
-# Welcome to My Personal Website
 
 
-  <div class="model-box">
-    <div class="hud">Tesseract • Rotating in 4D (XW & YZ)</div>
-    <canvas id="modelCanvas"></canvas>
+  <div id="tesseract-container">
+    <div id="navbar">
+      <a href="#home">Home</a>
+      <a href="#projects">Projects</a>
+      <a href="#about">About</a>
+    </div>
   </div>
 
 Hi there! I'm {{ site.author }}, an Electronics Engineer passionate about technology, programming, and sharing knowledge.
@@ -79,169 +81,125 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
     }
   }
 
- body {
-      background: #fdfdfd;
+body {
+      margin: 0;
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: #fdfdfd;
+      font-family: Arial, sans-serif;
     }
 
-    .model-box {
-      width: 320px;
-      height: 320px;
+    /* Container for both animation + nav */
+    #tesseract-container {
       position: relative;
-      overflow: visible; /* allow subtle spillover */
-      border: 1px solid #ddd;
+      width: 400px;
+      height: 400px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 2px solid #ddd;
       border-radius: 10px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-      background: #fdfdfd;
+      background: #fff;
+      overflow: hidden; /* keeps animation inside */
     }
 
     canvas {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 400px;   /* visually larger than the box */
-      height: 400px;
       display: block;
-      pointer-events: none; /* don't block interactions nearby */
     }
 
-    .hud {
+    /* Navbar inside the container */
+    #navbar {
       position: absolute;
-      left: 10px;
-      top: 10px;
-      font-size: 12px;
-      padding: 6px 8px;
-      background: rgba(0,0,0,0.06);
-      border-radius: 8px;
-      color: #111;
-      user-select: none;
+      bottom: 10px;
+      display: flex;
+      gap: 15px;
+      z-index: 10;
+    }
+
+    #navbar a {
+      text-decoration: none;
+      color: #333;
+      font-weight: bold;
+      background: rgba(255,255,255,0.8);
+      padding: 5px 10px;
+      border-radius: 5px;
+      transition: background 0.3s;
+    }
+
+    #navbar a:hover {
+      background: rgba(200,200,200,0.9);
     }
 </style>
 
-<script type="module">
-    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js";
-
-    // --- Renderer / Scene / Camera ---
-    const canvas = document.getElementById("modelCanvas");
-    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    // IMPORTANT: setSize must match the CSS px size above (400x400)
-    renderer.setSize(400, 400, false);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    renderer.setClearColor(0xfdfdfd, 1);
-
+<!-- Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script>
+    const container = document.getElementById("tesseract-container");
     const scene = new THREE.Scene();
-    const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 100);
-    camera.position.set(0, 0, 5);
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    container.appendChild(renderer.domElement);
 
-    // --- Tesseract (4D hypercube) setup ---
-    // 16 vertices: all combinations of (+/-1, +/-1, +/-1, +/-1)
-    const verts4D = [];
-    for (let w of [-1, 1]) {
-      for (let z of [-1, 1]) {
-        for (let y of [-1, 1]) {
-          for (let x of [-1, 1]) {
-            verts4D.push([x, y, z, w]);
+    camera.position.z = 6;
+
+    // Tesseract vertices (4D projected into 3D)
+    const vertices4D = [];
+    for (let x = -1; x <= 1; x += 2) {
+      for (let y = -1; y <= 1; y += 2) {
+        for (let z = -1; z <= 1; z += 2) {
+          for (let w = -1; w <= 1; w += 2) {
+            vertices4D.push([x, y, z, w]);
           }
         }
       }
     }
 
-    // Build edge list: connect vertices that differ by exactly one coordinate
+    function project4Dto3D([x, y, z, w], angle) {
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      const xRot = x * cos - w * sin;
+      const wRot = x * sin + w * cos;
+      const zRot = z * cos - y * sin;
+      const yRot = z * sin + y * cos;
+      return new THREE.Vector3(xRot, yRot, wRot);
+    }
+
+    const material = new THREE.LineBasicMaterial({ color: 0x3333ff });
+    const group = new THREE.Group();
+
+    let angle = 0;
     const edges = [];
-    for (let i = 0; i < verts4D.length; i++) {
-      for (let j = i + 1; j < verts4D.length; j++) {
-        const a = verts4D[i], b = verts4D[j];
-        let diff = 0;
-        for (let k = 0; k < 4; k++) if (a[k] !== b[k]) diff++;
-        if (diff === 1) edges.push([i, j]);
+    for (let i = 0; i < vertices4D.length; i++) {
+      for (let j = i + 1; j < vertices4D.length; j++) {
+        const diff = vertices4D[i].map((v, k) => Math.abs(v - vertices4D[j][k]));
+        if (diff.reduce((a, b) => a + b, 0) === 2) {
+          edges.push([i, j]);
+        }
       }
     }
-    // edges should be 32 pairs for a tesseract
 
-    // 4D rotation helpers: rotate in a coordinate plane (ab) with angle t
-    function rotate4D(v, a, b, t) {
-      const s = Math.sin(t), c = Math.cos(t);
-      const out = v.slice();
-      const va = v[a], vb = v[b];
-      out[a] = va * c - vb * s;
-      out[b] = va * s + vb * c;
-      return out;
+    function createTesseract() {
+      group.clear();
+      const verts3D = vertices4D.map(v => project4Dto3D(v, angle));
+      edges.forEach(([i, j]) => {
+        const geometry = new THREE.BufferGeometry().setFromPoints([verts3D[i], verts3D[j]]);
+        const line = new THREE.Line(geometry, material);
+        group.add(line);
+      });
     }
 
-    // Project 4D -> 3D with perspective on W
-    // The larger 'perspD' is, the weaker the 4D perspective effect.
-    function project4Dto3D(v4, perspD = 3.0) {
-      const [x, y, z, w] = v4;
-      const denom = (perspD - w);
-      const s = 1.0 / (denom !== 0 ? denom : 1e-6);
-      return [x * s, y * s, z * s];
-    }
+    scene.add(group);
 
-    // Create line geometry (will update each frame)
-    const linePositions = new Float32Array(edges.length * 2 * 3);
-    const lineGeom = new THREE.BufferGeometry();
-    lineGeom.setAttribute("position", new THREE.BufferAttribute(linePositions, 3));
-
-    const lineMat = new THREE.LineBasicMaterial({ color: 0x444444, linewidth: 1 });
-    const wire = new THREE.LineSegments(lineGeom, lineMat);
-    wire.scale.set(1.4, 1.4, 1.4); // overall scale so it "breathes" out a bit
-    scene.add(wire);
-
-    // Optional soft light to give scene some depth (does not affect lines, but helps if you add meshes)
-    scene.add(new THREE.AmbientLight(0xffffff, 0.2));
-
-    // Animation: rotate in XW and YZ planes for a pleasing effect
-    let start = performance.now();
     function animate() {
-      const t = (performance.now() - start) * 0.001;
-      const angle1 = t * 0.7;  // XW plane
-      const angle2 = t * 0.9;  // YZ plane
-
-      // Compute transformed 3D points
-      const pts3 = [];
-      for (let v of verts4D) {
-        let r = v;
-        r = rotate4D(r, 0, 3, angle1); // rotate in (X=0, W=3)
-        r = rotate4D(r, 1, 2, angle2); // rotate in (Y=1, Z=2)
-        const p = project4Dto3D(r, 3.2); // tweak 4D perspective depth
-        pts3.push(p);
-      }
-
-      // Update line segment positions
-      let idx = 0;
-      for (let e of edges) {
-        const a = pts3[e[0]];
-        const b = pts3[e[1]];
-        linePositions[idx++] = a[0];
-        linePositions[idx++] = a[1];
-        linePositions[idx++] = a[2];
-        linePositions[idx++] = b[0];
-        linePositions[idx++] = b[1];
-        linePositions[idx++] = b[2];
-      }
-      lineGeom.attributes.position.needsUpdate = true;
-
-      // Gentle spin in 3D space so the projection also turns
-      wire.rotation.y = t * 0.3;
-      wire.rotation.x = Math.sin(t * 0.5) * 0.1;
-
-      renderer.render(scene, camera);
       requestAnimationFrame(animate);
+      angle += 0.01;
+      createTesseract();
+      renderer.render(scene, camera);
     }
-    animate();
 
-    // (Optional) If you ever want to make the container responsive:
-    // just update renderer size here. For this fixed 320 box + 400 canvas demo,
-    // we keep it static on purpose to preserve the subtle overflow.
-    // window.addEventListener("resize", () => {
-    //   renderer.setSize(400, 400, false);
-    //   camera.aspect = 1;
-    //   camera.updateProjectionMatrix();
-    // });
+    animate();
   </script>
