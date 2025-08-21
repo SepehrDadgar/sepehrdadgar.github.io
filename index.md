@@ -91,8 +91,11 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
       width: 320px;
       height: 320px;
       position: relative;
-      overflow: visible; /* allow canvas to spill out */
-      border: 1px solid #ccc;
+      overflow: visible; /* allow 3D object to spill out */
+      border: 0px solid #ccc;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
     canvas {
@@ -100,19 +103,20 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 400px;   /* visually larger */
+      width: 400px;   /* larger than the box */
       height: 400px;
       display: block;
-      pointer-events: none; /* don’t block nearby elements */
+      pointer-events: none; /* don’t block text or clicks */
     }
 </style>
 
  <script type="module">
     import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.module.js";
+    import { OBJLoader } from "https://cdn.jsdelivr.net/npm/three@0.158.0/examples/jsm/loaders/OBJLoader.js";
 
     const canvas = document.getElementById("modelCanvas");
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-    renderer.setSize(400, 400, false); // IMPORTANT: match canvas size
+    renderer.setSize(400, 400, false);
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 1000);
@@ -124,12 +128,30 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
     scene.add(light);
     scene.add(new THREE.AmbientLight(0xffffff, 0.4));
 
-    // TEST CUBE (replace with OBJ loader later)
+    // Test Cube (always shows up)
     const geometry = new THREE.BoxGeometry();
     const material = new THREE.MeshStandardMaterial({ color: 0x444444 });
     const cube = new THREE.Mesh(geometry, material);
     scene.add(cube);
 
+    // Load OBJ model
+    const loader = new OBJLoader();
+    loader.load(
+      "Tesseract.obj", // <-- replace with your model file path
+      (obj) => {
+        obj.scale.set(0.5, 0.5, 0.5); // adjust size if too big/small
+        obj.position.set(0, 0, 0);
+        scene.add(obj);
+      },
+      (xhr) => {
+        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+      },
+      (error) => {
+        console.error("Error loading OBJ:", error);
+      }
+    );
+
+    // Animate
     function animate() {
       requestAnimationFrame(animate);
       cube.rotation.x += 0.01;
