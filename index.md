@@ -107,7 +107,7 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
 
     .post-title {
       margin-bottom: 0.5rem;
-      font-size: 1rem;
+      font-size: 1.7rem;
     }
 </style>
 
