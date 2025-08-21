@@ -28,17 +28,21 @@
 
         
         
-      <div class="wrapper">
-        <a class="site-title" href="{{ "/" | relative_url }}">{{ site.title | escape }}</a>
-        <nav class="site-nav">
-          <div class="trigger">
-            <a class="page-link" href="{{ "/" | relative_url }}">Home</a>
-            <a class="page-link" href="{{ "/archive" | relative_url }}">Blog</a>
-            <a class="page-link" href="{{ "/projects/" | relative_url }}">Projects</a>
-            <a class="page-link" href="{{ "/cv/" | relative_url }}">CV</a>
-          </div>
-        </nav>
-      </div>
+        <div class="wrapper">
+          <a class="site-title" href="{{ "/" | relative_url }}">{{ site.title | escape }}</a>
+      
+          <!-- Hamburger button -->
+          <button class="nav-toggle" aria-label="Open navigation">&#9776;</button>
+      
+          <nav class="site-nav">
+            <div class="trigger">
+              <a class="page-link" href="{{ "/" | relative_url }}">Home</a>
+              <a class="page-link" href="{{ "/archive" | relative_url }}">Blog</a>
+              <a class="page-link" href="{{ "/projects/" | relative_url }}">Projects</a>
+              <a class="page-link" href="{{ "/cv/" | relative_url }}">CV</a>
+            </div>
+          </nav>
+        </div>
     </header>
 
     <main class="page-content" aria-label="Content">
@@ -132,6 +136,62 @@
         margin: 0;
       }
     }
+
+    .nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 28px;
+  line-height: 56px;
+  cursor: pointer;
+  float: right;
+}
+
+@media (max-width: 600px) {
+  .nav-toggle {
+    display: block;
+  }
+
+  .site-nav {
+    position: absolute;
+    top: 56px;
+    right: 20px;
+    background-color: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 5px;
+    display: none; /* hidden by default */
+    width: 150px;
+    text-align: right;
+    z-index: 1000;
+  }
+
+  .site-nav.active {
+    display: block;
+  }
+
+  .page-link {
+    display: block;
+    padding: 10px 15px;
+    margin: 0;
+    border-bottom: 1px solid #e8e8e8;
+  }
+
+  .page-link:last-child {
+    border-bottom: none;
+  }
+}
+
+
     </style>
   </body>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const toggle = document.querySelector(".nav-toggle");
+      const nav = document.querySelector(".site-nav");
+    
+      toggle.addEventListener("click", () => {
+        nav.classList.toggle("active");
+      });
+    });
+    </script>
 </html>
