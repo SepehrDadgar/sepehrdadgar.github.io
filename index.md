@@ -125,6 +125,7 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
     // renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setClearColor(0xfdfdfd, 1); // <── background color
     container.appendChild(renderer.domElement);
 
     // function to create a cube wireframe at scale
