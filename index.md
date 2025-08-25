@@ -82,17 +82,6 @@ Feel free to reach out to me through [email]({{ site.email }}) or connect with m
     }
 
 
-    nav {
-      margin: 20px;
-    }
-
-    nav a {
-      margin: 0 10px;
-      text-decoration: none;
-      color: #333;
-      font-weight: bold;
-    }
-
     #container {
       width: 300px;
       height: 300px;
