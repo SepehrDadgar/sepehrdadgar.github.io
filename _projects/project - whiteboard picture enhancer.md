@@ -9,7 +9,7 @@ tags:
   - whiteboard
   - تمیز_کردن_تصویر
 github: SepehrDadgar/whiteboard-enhancer
-live_demo: whiteboard-enhancer
+live_demo: /projects/whiteboard-enhancer
 ---
 
 # چگونه با پایتون عکس های تخته وایت‌برد رو تمیز کنیم

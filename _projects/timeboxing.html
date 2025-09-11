@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Time Box — Daily Planner</title>
+  <style>
+    :root{
+      --bg:#f6f6f8; --card:#ffffff; --accent:#0b74de; --muted:#6b6b75; --gap:18px;
+      --paper-w:1000px;
+    }
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background:var(--bg); color:#111}
+    .wrap{max-width:var(--paper-w);margin:24px auto;padding:20px}
+    .paper{display:grid;grid-template-columns:1fr 360px;gap:28px;background:var(--card);padding:22px;border-radius:8px;box-shadow:0 6px 30px rgba(10,10,20,0.06)}
+    header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+    .title{display:flex;gap:14px;align-items:center}
+    .logo{width:56px;height:56px;border:2px solid var(--muted);display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--muted)}
+    h1{font-size:18px;margin:0}
+    .controls{display:flex;gap:8px;align-items:center}
+
+    /* left column (priorities + brain dump) */
+    .left{display:flex;flex-direction:column;gap:18px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,1), rgba(250,250,252,1));border:1px solid #e6e6ea;padding:12px;border-radius:6px}
+    label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+    .priorities{display:flex;flex-direction:column;gap:8px}
+    .priority-item{display:flex;gap:8px}
+    .priority-item input{flex:1;padding:8px;border-radius:6px;border:1px solid #ddd}
+
+    .brain-dump textarea{width:100%;min-height:260px;padding:10px;border-radius:6px;border:1px solid #ddd;resize:vertical}
+
+    .add-actions{display:flex;gap:8px;margin-top:8px}
+    .btn{background:var(--accent);color:#fff;border:none;padding:8px 12px;border-radius:6px;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,116,222,0.12)}
+
+    /* right column timeline */
+    .right{display:flex;flex-direction:column;gap:8px}
+    .date-row{display:flex;gap:12px;align-items:center}
+    .date-row input[type=date]{padding:8px;border-radius:6px;border:1px solid #ddd}
+
+    .timeline{border-left:1px dashed #eee;padding-left:12px;overflow:auto;max-height:640px}
+    .slot{display:grid;grid-template-columns:64px 1fr;gap:8px;align-items:start;padding:6px 6px;border-bottom:1px solid #fafafa}
+    .hour{font-size:13px;color:var(--muted);text-align:right;padding-right:6px}
+    .cells{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+    .cell{min-height:40px;border:1px dashed rgba(0,0,0,0.06);border-radius:6px;padding:6px;background:linear-gradient(180deg,#fff,#fbfbfd)}
+    .cell.empty{opacity:0.6}
+
+    .task{padding:6px 8px;border-radius:6px;background:#eef6ff;border:1px solid rgba(11,116,222,0.12);cursor:grab}
+    .task.dragging{opacity:0.5}
+
+    .small{font-size:12px;color:var(--muted)}
+
+    footer{display:flex;justify-content:space-between;align-items:center;margin-top:10px}
+
+    /* print-friendly */
+    @media print{
+      body{background:white}
+      .wrap{max-width:800px}
+      .controls,.add-actions,footer{display:none}
+      .paper{box-shadow:none;border:0}
+    }
+
+    /* responsive */
+    @media(max-width:920px){.paper{grid-template-columns:1fr;}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="paper" role="application">
+      <div class="left">
+        <header>
+          <div class="title">
+            <div class="logo">TB</div>
+            <div>
+              <h1>The Time Box</h1>
+              <div class="small">Timeboxing planner — drag tasks into half-hour slots</div>
+            </div>
+          </div>
+          <div class="controls">
+            <button class="btn" id="saveBtn">Save</button>
+            <button class="btn ghost" id="clearBtn">Clear</button>
+            <button class="btn ghost" id="printBtn">Print</button>
+          </div>
+        </header>
+
+        <div class="card">
+          <label>Top Priorities (drag a priority onto timeline)</label>
+          <div class="priorities" id="prioritiesList">
+            <div class="priority-item"><input placeholder="Priority 1" data-prio-index="0"></div>
+            <div class="priority-item"><input placeholder="Priority 2" data-prio-index="1"></div>
+            <div class="priority-item"><input placeholder="Priority 3" data-prio-index="2"></div>
+          </div>
+          <div class="add-actions">
+            <button class="btn" id="addPriority">Add Priority</button>
+            <button class="btn ghost" id="makeTasksFromPriorities">Create Tasks</button>
+          </div>
+        </div>
+
+        <div class="card brain-dump">
+          <label>Brain Dump</label>
+          <textarea id="brainDump" placeholder="Dump everything here. Select text and click 'Create Task' to turn into tasks."></textarea>
+          <div class="add-actions">
+            <button class="btn" id="createTaskFromSelection">Create Task from Selection</button>
+            <button class="btn ghost" id="clearBrain">Clear Brain Dump</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <label>Tasks (drag me)</label>
+          <div id="taskPool" style="display:flex;flex-direction:column;gap:8px;margin-top:8px"></div>
+        </div>
+
+      </div>
+
+      <div class="right">
+        <div class="card">
+          <div class="date-row">
+            <label class="small">Date</label>
+            <input type="date" id="datePicker">
+            <div style="flex:1"></div>
+            <div class="small">Double-click a cell to type. Drag tasks into cells.</div>
+          </div>
+        </div>
+
+        <div class="card timeline" id="timeline">
+          <!-- timeline generated by JS -->
+        </div>
+
+        <footer>
+          <div class="small">Auto-saves to your browser storage.</div>
+          <div class="small">Export / Import below</div>
+        </footer>
+
+        <div class="card">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn ghost" id="exportJson">Export JSON</button>
+            <button class="btn ghost" id="importJson">Import JSON</button>
+            <input type="file" id="importFile" style="display:none">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Configuration ---
+    const START_HOUR = 5; // 5:00
+    const END_HOUR = 23;  // 23:00 (11pm)
+
+    const timeline = document.getElementById('timeline');
+    const datePicker = document.getElementById('datePicker');
+    const taskPool = document.getElementById('taskPool');
+    const saveBtn = document.getElementById('saveBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const printBtn = document.getElementById('printBtn');
+
+    // initialize today
+    datePicker.value = new Date().toISOString().slice(0,10);
+
+    // generate timeline half-hour slots
+    function buildTimeline(){
+      timeline.innerHTML = '';
+      for(let h=START_HOUR; h<=END_HOUR; h++){
+        const slot = document.createElement('div'); slot.className='slot';
+        const hourLabel = document.createElement('div'); hourLabel.className='hour';
+        hourLabel.textContent = (h%12===0?12:h%12)+ (h<12? ' am' : ' pm');
+        const cells = document.createElement('div'); cells.className='cells';
+
+        for(let half=0; half<2; half++){
+          const cell = document.createElement('div'); cell.className='cell empty';
+          cell.dataset.hour = h; cell.dataset.minute = half===0? '00':'30';
+          cell.addEventListener('dragover',e=>e.preventDefault());
+          cell.addEventListener('drop',onDropToCell);
+          cell.addEventListener('dblclick',onCellDblClick);
+          cells.appendChild(cell);
+        }
+
+        slot.appendChild(hourLabel);
+        slot.appendChild(cells);
+        timeline.appendChild(slot);
+      }
+    }
+
+    buildTimeline();
+
+    // --- Task creation and drag-drop ---
+    function makeTaskElement(text, id){
+      const t = document.createElement('div'); t.className='task'; t.draggable=true; t.textContent = text;
+      t.dataset.taskId = id||('t_'+Date.now()+Math.random().toString(36).slice(2,8));
+      t.addEventListener('dragstart', e => { e.dataTransfer.setData('text/plain', t.dataset.taskId); t.classList.add('dragging'); });
+      t.addEventListener('dragend', e => { t.classList.remove('dragging'); });
+      // allow quick remove
+      t.addEventListener('dblclick', ()=>{ if(confirm('Remove task?')){t.remove(); save();}});
+      return t;
+    }
+
+    // create task from brain dump selection or textarea
+    document.getElementById('createTaskFromSelection').addEventListener('click', ()=>{
+      const sel = window.getSelection().toString().trim();
+      const dump = document.getElementById('brainDump');
+      const text = sel || dump.value.trim();
+      if(!text) return alert('No text selected or in brain dump');
+      const lines = text.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+      lines.forEach(ln=>{ taskPool.appendChild(makeTaskElement(ln)); });
+      if(!sel) dump.value='';
+      save();
+    });
+
+    document.getElementById('addPriority').addEventListener('click', ()=>{
+      const container = document.getElementById('prioritiesList');
+      const div = document.createElement('div'); div.className='priority-item';
+      const input = document.createElement('input'); input.placeholder = 'Priority'; div.appendChild(input); container.appendChild(div);
+    });
+
+    document.getElementById('makeTasksFromPriorities').addEventListener('click', ()=>{
+      document.querySelectorAll('#prioritiesList input').forEach(inp=>{ if(inp.value.trim()) taskPool.appendChild(makeTaskElement(inp.value.trim())); });
+      save();
+    });
+
+    document.getElementById('clearBrain').addEventListener('click', ()=>{ if(confirm('Clear brain dump?')) document.getElementById('brainDump').value=''; save(); });
+
+    // drop handler
+    function onDropToCell(e){
+      e.preventDefault();
+      const id = e.dataTransfer.getData('text/plain');
+      // find source element by taskId
+      const src = document.querySelector('[data-task-id="'+id+'"]');
+      if(!src) return; // could be external
+      // clone into cell
+      const cl = src.cloneNode(true);
+      cl.addEventListener('dblclick', ()=>{ if(confirm('Remove assigned task?')){cl.remove(); save();}});
+      // allow editing inside cell
+      cl.draggable=false;
+      // remove empty marker
+      this.classList.remove('empty');
+      this.appendChild(cl);
+      save();
+    }
+
+    // double-click to type into empty cell
+    function onCellDblClick(e){
+      const cell = e.currentTarget;
+      const existing = cell.querySelector('.task');
+      if(existing) return; // don't overwrite
+      const text = prompt('Enter task for this slot:');
+      if(!text) return;
+      const el = makeTaskElement(text);
+      el.draggable=false;
+      cell.appendChild(el);
+      cell.classList.remove('empty');
+      save();
+    }
+
+    // populate task pool from saved or example
+    function loadFromStorage(){
+      const dateKey = storageKey();
+      const raw = localStorage.getItem(dateKey);
+      // clear current
+      taskPool.innerHTML='';
+      // restore priorities
+      document.querySelectorAll('#prioritiesList input').forEach((inp,i)=>{ inp.value=''; });
+      document.getElementById('brainDump').value='';
+      // clear timeline cells
+      document.querySelectorAll('.cell').forEach(c=>{ c.innerHTML=''; c.classList.add('empty'); });
+
+      if(raw){
+        try{
+          const data = JSON.parse(raw);
+          // tasks in pool
+          (data.pool||[]).forEach(t=> taskPool.appendChild(makeTaskElement(t.text,t.id)));
+          // priorities
+          if(data.priorities) data.priorities.forEach((p,i)=>{ const inp = document.querySelector('#prioritiesList input[data-prio-index="'+i+'"]'); if(inp) inp.value=p; else { const container = document.getElementById('prioritiesList'); const div = document.createElement('div'); div.className='priority-item'; const input = document.createElement('input'); input.value=p; div.appendChild(input); container.appendChild(div);} });
+          // brain
+          if(data.brain) document.getElementById('brainDump').value = data.brain;
+          // assignments
+          (data.assignments||[]).forEach(as =>{
+            const cell = document.querySelector('.cell[data-hour="'+as.hour+'"][data-minute="'+as.minute+'"]');
+            if(cell){ const el = document.createElement('div'); el.className='task'; el.textContent = as.text; el.draggable=false; el.addEventListener('dblclick', ()=>{ if(confirm('Remove assigned task?')){el.remove(); save();}}); cell.appendChild(el); cell.classList.remove('empty'); }
+          });
+        }catch(err){console.warn('parse error',err)}
+      }else{
+        // example: add 3 tasks to pool
+        ['Email backlog','Morning workout','Focus: Project X'].forEach(t=> taskPool.appendChild(makeTaskElement(t)));
+      }
+    }
+
+    function storageKey(d){
+      const date = (d||datePicker.value);
+      return 'timebox:'+date;
+    }
+
+    function save(){
+      const key = storageKey();
+      const pool = Array.from(taskPool.querySelectorAll('[data-task-id]')).map(el=>({id:el.dataset.taskId,text:el.textContent}));
+      const priorities = Array.from(document.querySelectorAll('#prioritiesList input')).map(i=>i.value);
+      const brain = document.getElementById('brainDump').value;
+      const assignments = [];
+      document.querySelectorAll('.cell').forEach(cell=>{
+        const hour = cell.dataset.hour; const minute = cell.dataset.minute;
+        Array.from(cell.querySelectorAll('.task')).forEach(t=> assignments.push({hour,minute,text:t.textContent}));
+      });
+      const payload = {pool,priorities,brain,assignments,updated:Date.now()};
+      localStorage.setItem(key, JSON.stringify(payload));
+      // small visual feedback
+      saveBtn.textContent='Saved'; setTimeout(()=>saveBtn.textContent='Save',900);
+    }
+
+    // wire save/clear/print
+    saveBtn.addEventListener('click', save);
+    clearBtn.addEventListener('click', ()=>{ if(confirm('Clear all items for this date?')){ localStorage.removeItem(storageKey()); loadFromStorage(); }});
+    printBtn.addEventListener('click', ()=>window.print());
+
+    // export / import
+    document.getElementById('exportJson').addEventListener('click', ()=>{
+      const data = localStorage.getItem(storageKey());
+      if(!data) return alert('Nothing saved for this date');
+      const blob = new Blob([data],{type:'application/json'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = storageKey()+'.json'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('importJson').addEventListener('click', ()=>document.getElementById('importFile').click());
+    document.getElementById('importFile').addEventListener('change', e=>{
+      const f = e.target.files[0]; if(!f) return;
+      const r = new FileReader(); r.onload = ev => { try{ const parsed = JSON.parse(ev.target.result); localStorage.setItem(storageKey(), JSON.stringify(parsed)); loadFromStorage(); alert('Imported'); }catch(err){alert('Invalid file') } }; r.readAsText(f);
+      e.target.value='';
+    });
+
+    // when date changes, load corresponding data
+    datePicker.addEventListener('change', loadFromStorage);
+
+    // quick save when anything changes in pool or priorities
+    document.addEventListener('input', (e)=>{ if(e.target && (e.target.matches('#brainDump') || e.target.closest('#prioritiesList') || e.target.closest('#taskPool'))) save(); });
+
+    // allow dragging tasks from pool into cells; tasks in pool should be draggable
+    // initial load
+    loadFromStorage();
+
+    // also add context menu to tasks for quick schedule to next empty cell
+    document.addEventListener('contextmenu', e=>{
+      const t = e.target.closest('.task'); if(!t) return;
+      e.preventDefault();
+      // find first empty cell and move
+      const cell = document.querySelector('.cell.empty'); if(!cell){ alert('No empty slot found'); return; }
+      const node = t.cloneNode(true); node.draggable=false; node.addEventListener('dblclick', ()=>{ if(confirm('Remove assigned task?')){node.remove(); save();}});
+      cell.appendChild(node); cell.classList.remove('empty'); save();
+    });
+
+  </script>
+</body>
+</html>
