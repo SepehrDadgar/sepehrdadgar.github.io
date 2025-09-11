@@ -24,6 +24,7 @@ Again just like any other productivity tool it is the person that has to do the 
 ---
 ## Summary of timeboxing
 1. you brain dump in the brain dumping section. (pour everything you have to do in your brain on the paper)
+   ![](/assets/images/chemia-granko.gif)
 2. then you choose your top priorities for the day.
 3. then we timebox. (allocate specific times for each goal)
 
