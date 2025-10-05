@@ -29,7 +29,13 @@
         
         
         <div class="wrapper">
-          <a class="site-title" href="{{ "/" | relative_url }}">{{ site.title | escape }}</a>
+          <a class="site-title" href="{{ '/' | relative_url }}" aria-label="{{ site.title | escape }}">
+            <img
+              src="{{ '/assets/images/favicon.svg' | relative_url }}"
+              alt="{{ site.title | escape }}"
+              class="site-logo"
+            >
+          </a>
       
           <!-- Hamburger button -->
           <button class="nav-toggle" aria-label="Open navigation">&#9776;</button>
