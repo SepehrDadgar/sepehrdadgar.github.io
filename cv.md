@@ -14,9 +14,8 @@ Electronics Engineer
 
 ## Education
 **Bachelor of Science in Biomedical Engineering**  
-*Apadana Institute of Higher Education, 2019 - 2024*
-
-**Master of Science in Electrical Engineering (Integrated Circuits)**
+*Apadana Institute of Higher Education, 2019 - 2024*  
+**Master of Science in Electrical Engineering (Integrated Circuits)**  
 *Shiraz University, 2025 – Present*
 
 ## Skills
