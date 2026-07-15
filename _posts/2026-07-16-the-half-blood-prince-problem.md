@@ -1,5 +1,4 @@
 # the half-blood prince problem
-
 when harry was given that beat up potions book with someone else's handwriting all over it, he goes from being a mediocre student to genuinely obsessed. not because the potions got easier. because the book stopped being a textbook and started being a secret someone left for him by accident.
 
 i've been thinking about why that hits so hard, and why i can't seem to replicate it with my own textbooks even when the material is genuinely useful.
