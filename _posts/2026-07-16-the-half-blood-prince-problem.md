@@ -1,3 +1,8 @@
+---
+layout: post
+title: "The Half-Blood Prince Problem"
+date: 2026-07-16
+---
 # the half blood prince problem
 when harry was given that beat up potions book with someone else's handwriting all over it, he goes from being a mediocre student to genuinely obsessed. not because the potions got easier. because the book stopped being a textbook and started being a secret someone left for him by accident.
 
