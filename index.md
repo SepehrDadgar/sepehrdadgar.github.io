@@ -3,7 +3,375 @@ layout: page
 title: Sepehr's Blog 🙄 ☜(ﾟヮﾟ☜)
 ---
 
-{% include tesseract-ring-oscillator.html %}
+<!--
+  Tesseract Ring Oscillator — drop-in widget for sepehrdadgar.github.io
+
+  What it is: a tesseract (4D hypercube) tumbling in 4D, with a real
+  7-stage CMOS ring oscillator mapped onto the Hamiltonian cycle of one
+  of its cube faces (8 vertices, real cube edges — 7 inverting stages +
+  1 non-inverting buffer, so it's an authentic odd-stage ring oscillator,
+  not just a decorative loop). A pulse travels stage to stage; each
+  inverter flips the logic level it passes on, exactly like a real
+  ring oscillator's rotating wavefront.
+
+  USAGE (pick one):
+    1) Save as _includes/tesseract-ring-oscillator.html and drop
+       {% include tesseract-ring-oscillator.html %}
+       into any .md or .html page (e.g. index.md).
+    2) Or paste this whole block directly into a page's markdown/HTML —
+       Jekyll passes raw HTML straight through.
+
+  No external dependencies, no fonts/scripts to load. Respects
+  prefers-reduced-motion. Safe to include more than once on a page.
+-->
+<div class="tro-wrap">
+  <canvas
+    class="tro-canvas"
+    role="img"
+    aria-label="Animated rotating tesseract with a 7-stage CMOS ring oscillator running around one of its faces, a signal pulse propagating through the inverter stages"
+  ></canvas>
+  <p class="tro-caption">7-stage CMOS ring oscillator <span class="tro-caption-dim">// tesseract topology</span></p>
+</div>
+
+<style>
+  .tro-wrap {
+    --pcb-panel: #0d1512;
+    --copper: 138, 90, 52;
+    --signal-high: 85, 255, 176;
+    --signal-low: 30, 59, 46;
+    --via-gold: 217, 180, 106;
+    --silk: 233, 231, 222;
+
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+    border-radius: 14px;
+    border: 1px solid rgba(var(--via-gold), 0.18);
+    background:
+      radial-gradient(circle at 30% 20%, rgba(var(--signal-high), 0.05), transparent 60%),
+      repeating-linear-gradient(0deg, rgba(var(--silk), 0.025) 0px, rgba(var(--silk), 0.025) 1px, transparent 1px, transparent 24px),
+      repeating-linear-gradient(90deg, rgba(var(--silk), 0.025) 0px, rgba(var(--silk), 0.025) 1px, transparent 1px, transparent 24px),
+      var(--pcb-panel);
+  }
+
+  .tro-canvas {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    touch-action: none;
+  }
+
+  .tro-caption {
+    margin: 14px 0 0;
+    text-align: center;
+    font-family: ui-monospace, "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, "Courier New", monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(var(--silk), 0.6);
+  }
+
+  .tro-caption-dim {
+    color: rgba(var(--silk), 0.32);
+  }
+
+  @media (max-width: 420px) {
+    .tro-wrap {
+      padding: 14px;
+      border-radius: 10px;
+    }
+    .tro-caption {
+      font-size: 9.5px;
+    }
+  }
+</style>
+
+<script>
+(function () {
+  function initTRO(root) {
+    var canvas = root.querySelector(".tro-canvas");
+    var ctx = canvas.getContext("2d");
+    var prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    // ---------- geometry: 16 vertices of a tesseract ----------
+    var verts4 = [];
+    for (var i = 0; i < 16; i++) {
+      verts4.push([
+        (i & 8) ? 1 : -1,
+        (i & 4) ? 1 : -1,
+        (i & 2) ? 1 : -1,
+        (i & 1) ? 1 : -1
+      ]);
+    }
+
+    function diffAxes(a, b) {
+      var d = 0;
+      for (var k = 0; k < 4; k++) if (a[k] !== b[k]) d++;
+      return d;
+    }
+
+    var allEdges = [];
+    for (var a = 0; a < 16; a++) {
+      for (var b = a + 1; b < 16; b++) {
+        if (diffAxes(verts4[a], verts4[b]) === 1) allEdges.push([a, b]);
+      }
+    }
+
+    function idx4(x, y, z, w) {
+      return (x > 0 ? 8 : 0) + (y > 0 ? 4 : 0) + (z > 0 ? 2 : 0) + (w > 0 ? 1 : 0);
+    }
+
+    // Hamiltonian cycle around one cube face (w = -1), real cube edges only.
+    // 7 of its 8 stages act as inverters, 1 as a plain buffer/via —
+    // an odd number of inversions, so it's a genuine ring oscillator.
+    var ring = [
+      idx4(-1, -1, -1, -1),
+      idx4(-1, -1, 1, -1),
+      idx4(-1, 1, 1, -1),
+      idx4(-1, 1, -1, -1),
+      idx4(1, 1, -1, -1),
+      idx4(1, 1, 1, -1),
+      idx4(1, -1, 1, -1),
+      idx4(1, -1, -1, -1)
+    ];
+    var GATE_INVERTING = [true, true, true, true, true, true, true, false];
+
+    var ringPos = {};
+    ring.forEach(function (v, pos) { ringPos[v] = pos; });
+
+    var ringEdgeSet = {};
+    for (var r = 0; r < ring.length; r++) {
+      var e1 = ring[r], e2 = ring[(r + 1) % ring.length];
+      var key = e1 < e2 ? e1 + "-" + e2 : e2 + "-" + e1;
+      ringEdgeSet[key] = true;
+    }
+    var structuralEdges = allEdges.filter(function (edge) {
+      var key = edge[0] < edge[1] ? edge[0] + "-" + edge[1] : edge[1] + "-" + edge[0];
+      return !ringEdgeSet[key];
+    });
+
+    // ---------- oscillator state ----------
+    var states = new Array(8).fill(false);
+    states[0] = true;
+    var stage = 0;
+    var stageStart = performance.now();
+    var STEP_MS = 260;
+
+    function advanceStage(now) {
+      var from = stage;
+      var to = (stage + 1) % 8;
+      states[to] = GATE_INVERTING[from] ? !states[from] : states[from];
+      stage = to;
+      stageStart = now;
+    }
+
+    // ---------- 4D rotation ----------
+    var aXY = 0, aZW = 0, aXW = 0;
+    var lastTime = performance.now();
+    var pointerX = 0, pointerY = 0, targetPX = 0, targetPY = 0;
+
+    root.addEventListener("pointermove", function (e) {
+      var rect = root.getBoundingClientRect();
+      targetPX = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+      targetPY = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+    });
+    root.addEventListener("pointerleave", function () {
+      targetPX = 0;
+      targetPY = 0;
+    });
+
+    function rotate4(p, cXY, sXY, cZW, sZW, cXW, sXW) {
+      var x = p[0], y = p[1], z = p[2], w = p[3];
+      var x1 = x * cXY - y * sXY;
+      var y1 = x * sXY + y * cXY;
+      var z1 = z * cZW - w * sZW;
+      var w1 = z * sZW + w * cZW;
+      var x2 = x1 * cXW - w1 * sXW;
+      var w2 = x1 * sXW + w1 * cXW;
+      return [x2, y1, z1, w2];
+    }
+
+    function project(p) {
+      var x = p[0], y = p[1], z = p[2], w = p[3];
+      var wDist = 2.6;
+      var f4 = wDist / (wDist - w);
+      var x3 = x * f4, y3 = y * f4, z3 = z * f4;
+      var zDist = 3.0;
+      var f3 = zDist / (zDist - z3);
+      return { x: x3 * f3, y: y3 * f3, depth: z3 };
+    }
+
+    // ---------- sizing ----------
+    var W = 0, H = 0, DPR = 1;
+    function resize() {
+      var rect = root.getBoundingClientRect();
+      DPR = window.devicePixelRatio || 1;
+      W = rect.width;
+      H = rect.width;
+      canvas.width = W * DPR;
+      canvas.height = H * DPR;
+      canvas.style.height = H + "px";
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+    if (window.ResizeObserver) {
+      new ResizeObserver(resize).observe(root);
+    } else {
+      window.addEventListener("resize", resize);
+    }
+    resize();
+
+    // ---------- draw ----------
+    function draw(now) {
+      var dt = (now - lastTime) / 1000;
+      lastTime = now;
+
+      if (!prefersReduced) {
+        aXY += dt * 0.22;
+        aZW += dt * 0.31;
+        aXW += dt * 0.13;
+        pointerX += (targetPX - pointerX) * 0.05;
+        pointerY += (targetPY - pointerY) * 0.05;
+      }
+
+      if (now - stageStart >= STEP_MS) advanceStage(now);
+      var stageFrac = Math.min(1, (now - stageStart) / STEP_MS);
+
+      var cXY = Math.cos(aXY), sXY = Math.sin(aXY);
+      var cZW = Math.cos(aZW + pointerX * 0.4), sZW = Math.sin(aZW + pointerX * 0.4);
+      var cXW = Math.cos(aXW + pointerY * 0.4), sXW = Math.sin(aXW + pointerY * 0.4);
+
+      var scale = W * 0.34;
+      var cx = W / 2, cy = H / 2;
+
+      var screen = verts4.map(function (p) {
+        var proj = project(rotate4(p, cXY, sXY, cZW, sZW, cXW, sXW));
+        return { x: cx + proj.x * scale, y: cy + proj.y * scale, depth: proj.depth };
+      });
+
+      ctx.clearRect(0, 0, W, H);
+
+      var minD = Infinity, maxD = -Infinity;
+      screen.forEach(function (s) {
+        if (s.depth < minD) minD = s.depth;
+        if (s.depth > maxD) maxD = s.depth;
+      });
+      function depthAlpha(d) {
+        var t = (d - minD) / ((maxD - minD) || 1);
+        return 0.25 + t * 0.55;
+      }
+
+      // dim structural edges
+      structuralEdges.forEach(function (edge) {
+        var pa = screen[edge[0]], pb = screen[edge[1]];
+        var alpha = (depthAlpha(pa.depth) + depthAlpha(pb.depth)) / 2;
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(var(--copper), " + (alpha * 0.55) + ")".replace("var(--copper)", "138, 90, 52");
+        ctx.beginPath();
+        ctx.moveTo(pa.x, pa.y);
+        ctx.lineTo(pb.x, pb.y);
+        ctx.stroke();
+      });
+
+      // ring edges + gate symbols
+      for (var i = 0; i < 8; i++) {
+        var va = ring[i], vb = ring[(i + 1) % 8];
+        var pa = screen[va], pb = screen[vb];
+        var on = states[i];
+        var isCurrent = i === stage;
+        var alpha = (depthAlpha(pa.depth) + depthAlpha(pb.depth)) / 2;
+
+        ctx.lineWidth = isCurrent ? 2.4 : 1.6;
+        ctx.strokeStyle = on
+          ? "rgba(85, 255, 176, " + Math.min(1, alpha + 0.35) + ")"
+          : "rgba(30, 59, 46, " + (alpha + 0.25) + ")";
+        ctx.beginPath();
+        ctx.moveTo(pa.x, pa.y);
+        ctx.lineTo(pb.x, pb.y);
+        ctx.stroke();
+
+        var mx = (pa.x + pb.x) / 2, my = (pa.y + pb.y) / 2;
+        var dx = pb.x - pa.x, dy = pb.y - pa.y;
+        var ang = Math.atan2(dy, dx);
+        var gsize = 7 + alpha * 3;
+
+        ctx.save();
+        ctx.translate(mx, my);
+        ctx.rotate(ang);
+
+        if (GATE_INVERTING[i]) {
+          ctx.beginPath();
+          ctx.moveTo(-gsize, -gsize * 0.7);
+          ctx.lineTo(-gsize, gsize * 0.7);
+          ctx.lineTo(gsize * 0.6, 0);
+          ctx.closePath();
+          ctx.fillStyle = isCurrent ? "rgba(233,231,222,0.92)" : "rgba(233,231,222,0.5)";
+          ctx.fill();
+          ctx.beginPath();
+          ctx.arc(gsize * 0.9, 0, gsize * 0.28, 0, Math.PI * 2);
+          ctx.fillStyle = isCurrent ? "#55ffb0" : "rgba(85,255,176,0.5)";
+          ctx.fill();
+        } else {
+          ctx.fillStyle = "rgba(217,180,106,0.85)";
+          ctx.fillRect(-gsize * 0.4, -gsize * 0.4, gsize * 0.8, gsize * 0.8);
+        }
+        ctx.restore();
+      }
+
+      // traveling pulse dot
+      var pStage = ring[stage], pNext = ring[(stage + 1) % 8];
+      var pPa = screen[pStage], pPb = screen[pNext];
+      var px = pPa.x + (pPb.x - pPa.x) * stageFrac;
+      var py = pPa.y + (pPb.y - pPa.y) * stageFrac;
+      var grad = ctx.createRadialGradient(px, py, 0, px, py, 10);
+      grad.addColorStop(0, "rgba(85,255,176,0.95)");
+      grad.addColorStop(1, "rgba(85,255,176,0)");
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(px, py, 10, 0, Math.PI * 2);
+      ctx.fill();
+
+      // vertices (vias)
+      for (var v = 0; v < 16; v++) {
+        var s = screen[v];
+        var dAlpha = depthAlpha(s.depth);
+        var isRing = ringPos.hasOwnProperty(v);
+
+        if (isRing && states[ringPos[v]]) {
+          var haloR = 9 + dAlpha * 4;
+          var halo = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, haloR);
+          halo.addColorStop(0, "rgba(85,255,176,0.45)");
+          halo.addColorStop(1, "rgba(85,255,176,0)");
+          ctx.fillStyle = halo;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, haloR, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        var rad = isRing ? 3 + dAlpha * 1.5 : 1.6 + dAlpha;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, rad, 0, Math.PI * 2);
+        ctx.fillStyle = isRing
+          ? "rgba(217, 180, 106, " + Math.min(1, dAlpha + 0.3) + ")"
+          : "rgba(217, 180, 106, " + (dAlpha * 0.5) + ")";
+        ctx.fill();
+      }
+
+      if (!prefersReduced) requestAnimationFrame(draw);
+    }
+
+    if (prefersReduced) {
+      draw(performance.now());
+      setInterval(function () { draw(performance.now()); }, 1200);
+    } else {
+      requestAnimationFrame(draw);
+    }
+  }
+
+  var nodes = document.querySelectorAll(".tro-wrap");
+  for (var n = 0; n < nodes.length; n++) initTRO(nodes[n]);
+})();
+</script>
 
 Hi there! I'm {{ site.author }}, an Electronics Engineer.
 
