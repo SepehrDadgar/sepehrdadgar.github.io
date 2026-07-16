@@ -1,6 +1,8 @@
 title: "Sepehr"
 author: "Sepehr Dadgar"
 description: "I'm Sepehr, an Electronics Engineer." # This will show up in places like twitter, linkedin, etc, if you share your sites url as a post.
+url: "https://sepehrdadgar.github.io"
+image: "/assets/images/social-preview.png"
 
 # Email / Social media user names used by the minima theme:
 # All of these are optional and can be removed or commented out
@@ -27,6 +29,11 @@ collections:
     permalink: /projects/:path/
 
 # Defaults
+# NOTE: a YAML file can only have one top-level `defaults:` key. Both
+# scoped rules (CV page + post tags) live in this single list now --
+# previously there were two separate `defaults:` blocks and the second
+# one was silently overwriting the first, so the CV page's layout/title/
+# permalink defaults were never actually being applied.
 defaults:
   - scope:
       path: "cv"
@@ -35,13 +42,18 @@ defaults:
       layout: page
       title: "CV"
       permalink: /cv/
+  - scope:
+      path: ""
+      type: post
+    values:
+      tags: Other
 
 rss: rss
 
 kramdown:
   syntax_highlighter_opts:
     disable: true
-    
+
 plugins:
   - jekyll-feed
   - jekyll-sitemap
@@ -49,10 +61,3 @@ plugins:
 titles_from_headings:
   strip_title: true
   collections: true
-
-defaults:
-  - scope:
-      path: ""
-      type: post
-    values:
-      tags: Other

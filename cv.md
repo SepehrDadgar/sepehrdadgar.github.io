@@ -24,8 +24,9 @@ Electronics Engineer
 - **Other:** PCB Design, Embedded Systems
 
 ## Projects
-- [Project 1](#) - Brief description
-- [Project 2](#) - Brief description
+{% for project in site.projects %}
+- [{{ project.title }}]({{ project.url | relative_url }}) - {{ project.description }}
+{% endfor %}
 
 ## Certifications
 - الکترونیک فنی حرفه ای (2025)
