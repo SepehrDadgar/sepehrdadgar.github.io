@@ -4,8 +4,7 @@ title: Sepehr's Blog 🙄 ☜(ﾟヮﾟ☜)
 ---
 
 <!--
-  Tesseract Ring Oscillator — drop-in widget for sepehrdadgar.github.io
-
+  Tesseract Ring Oscillator
   What it is: a tesseract (4D hypercube) tumbling in 4D, with a real
   7-stage CMOS ring oscillator mapped onto the Hamiltonian cycle of one
   of its cube faces (8 vertices, real cube edges — 7 inverting stages +
@@ -13,24 +12,6 @@ title: Sepehr's Blog 🙄 ☜(ﾟヮﾟ☜)
   not just a decorative loop). A pulse travels stage to stage; each
   inverter flips the logic level it passes on, exactly like a real
   ring oscillator's rotating wavefront.
-
-  USAGE (pick one):
-    1) Save as _includes/tesseract-ring-oscillator.html and add an
-       include tag for tesseract-ring-oscillator.html into any .md or
-       .html page (e.g. index.md). Do not paste this file's own content
-       into itself or into a page that also includes it - see note below.
-    2) Or paste this whole block directly into a page's markdown/HTML —
-       Jekyll passes raw HTML straight through.
-
-  IMPORTANT: this comment must never contain literal Liquid include-tag
-  syntax as example text. Liquid parses its tag delimiters anywhere in
-  a file, including inside HTML comments - writing the real syntax
-  out here (curly-brace-percent ... percent-curly-brace) would make
-  this file include itself and crash the build with a stack overflow,
-  or otherwise fail to parse.
-
-  No external dependencies, no fonts/scripts to load. Respects
-  prefers-reduced-motion. Safe to include more than once on a page.
 -->
 <div class="tro-wrap">
   <canvas
@@ -398,7 +379,7 @@ ___
 
 ## Get In Touch
 
-Feel free to reach out to me through [email]({{ site.email }}) or connect with me on [GitHub](https://github.com/{{ site.github_username }}) and [LinkedIn](https://linkedin.com/in/{{ site.linkedin_username }}).
+Feel free to reach out to me through [email]({{ sepehrkhabazdadgar@gmail.com }}) or connect with me on [GitHub](https://github.com/{{ site.github_username }}) and [LinkedIn](https://linkedin.com/in/{{ site.linkedin_username }}).
 
 <style>
   .post-title {

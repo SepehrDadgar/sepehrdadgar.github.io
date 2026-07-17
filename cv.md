@@ -20,8 +20,8 @@ Electronics Engineer
 
 ## Skills
 - **Programming:** Python, C++, Verilog
-- **Tools:** MATLAB, LTSpice, Altium Designer
-- **Other:** PCB Design, Embedded Systems
+- **Tools:** Cadence, MATLAB, LTSpice, Altium Designer
+- **Other:** IC, PCB Design, Embedded Systems
 
 ## Projects
 {% for project in site.projects %}
@@ -29,7 +29,7 @@ Electronics Engineer
 {% endfor %}
 
 ## Certifications
-- الکترونیک فنی حرفه ای (2025)
+- 
 
 ## Languages
 - English (Fluent)
