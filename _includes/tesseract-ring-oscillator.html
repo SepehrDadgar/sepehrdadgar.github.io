@@ -10,11 +10,19 @@
   ring oscillator's rotating wavefront.
 
   USAGE (pick one):
-    1) Save as _includes/tesseract-ring-oscillator.html and drop
-       {% include tesseract-ring-oscillator.html %}
-       into any .md or .html page (e.g. index.md).
+    1) Save as _includes/tesseract-ring-oscillator.html and add an
+       include tag for tesseract-ring-oscillator.html into any .md or
+       .html page (e.g. index.md). Do not paste this file's own content
+       into itself or into a page that also includes it - see note below.
     2) Or paste this whole block directly into a page's markdown/HTML —
        Jekyll passes raw HTML straight through.
+
+  IMPORTANT: this comment must never contain literal Liquid include-tag
+  syntax as example text. Liquid parses its tag delimiters anywhere in
+  a file, including inside HTML comments - writing the real syntax
+  out here (curly-brace-percent ... percent-curly-brace) would make
+  this file include itself and crash the build with a stack overflow,
+  or otherwise fail to parse.
 
   No external dependencies, no fonts/scripts to load. Respects
   prefers-reduced-motion. Safe to include more than once on a page.
