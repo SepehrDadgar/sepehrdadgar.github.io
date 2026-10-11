@@ -9,3 +9,5 @@
 .obsidian/plugins/image-converter/manifest.json
 .obsidian/plugins/image-converter/styles.css
 _site
+.jekyll-cache/
+.sass-cache/

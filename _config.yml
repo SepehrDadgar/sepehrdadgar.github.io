@@ -2,6 +2,7 @@ title: "Sepehr"
 author: "Sepehr Dadgar"
 description: "I'm Sepehr, an Electronics Engineer." # This will show up in places like twitter, linkedin, etc, if you share your sites url as a post.
 url: "https://sepehrdadgar.github.io"
+lang: en
 image: "/assets/images/social-preview.png"
 
 # Email / Social media user names used by the minima theme:
@@ -56,6 +57,7 @@ kramdown:
 plugins:
   - jekyll-feed
   - jekyll-sitemap
+  - jekyll-seo-tag
 
 titles_from_headings:
   strip_title: true

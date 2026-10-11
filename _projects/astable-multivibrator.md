@@ -1,3 +1,8 @@
+---
+layout: project
+title: Astable multivibrator
+published: false
+---
 
 the first and easiest project for most people when they want to get started with electronics is a astable multivibrator
 

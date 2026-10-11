@@ -1,56 +1,31 @@
 <!DOCTYPE html>
-<html lang="fa">
+<html lang="{{ page.lang | default: site.lang | default: 'en' }}">
   {% include head.html %}
-  <body>
+  <body{% if page.url == '/' %} class="home"{% endif %}>
     <header class="site-header">
-      <script>
-        window.MathJax = {
-          tex: {
-            inlineMath: [['$', '$'], ['\\(', '\\)']],
-            displayMath: [['$$', '$$'], ['\\[', '\\]']]
-          }
-        };
-        </script>
-        <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-        <script>
-          document.addEventListener("DOMContentLoaded", () => {
-            const paragraphs = document.querySelectorAll("p");
-        
-            paragraphs.forEach(p => {
-              const text = p.textContent || p.innerText;
-              const isFarsi = /[\u0600-\u06FF\u0750-\u077F\u0590-\u05FF\u08A0-\u08FF\uFB50-\uFDCF\uFDF0-\uFDFF\uFE70-\uFEFF]/.test(text);
-              p.style.direction = isFarsi ? "rtl" : "ltr";
-              p.style.textAlign = isFarsi ? "right" : "left";
-            });
-          });
-        </script>
-        <link href="https://cdn.jsdelivr.net/npm/vazir-font@30.1.0/dist/font-face.css" rel="stylesheet" type="text/css" />
+      <div class="wrapper">
+        <a class="site-title" href="{{ '/' | relative_url }}" aria-label="{{ site.title | escape }}">
+          <img
+            src="{{ '/assets/images/header.svg' | relative_url }}"
+            alt="{{ site.title | escape }}"
+            class="site-logo"
+            width="48"
+            height="48"
+          >
+        </a>
 
-        
-        
-        <div class="wrapper">
-          <a class="site-title" href="{{ '/' | relative_url }}" aria-label="{{ site.title | escape }}">
-            <img
-              src="{{ '/assets/images/header.svg' | relative_url }}"
-              alt="{{ site.title | escape }}"
-              class="site-logo"
-              width="48"
-              height="48"
-            >
-          </a>
-      
-          <!-- Hamburger button -->
-          <button class="nav-toggle" aria-label="Open navigation">&#9776;</button>
-      
-          <nav class="site-nav">
-            <div class="trigger">
-              <a class="page-link" href="{{ "/" | relative_url }}">Home</a>
-              <a class="page-link" href="{{ "/archive" | relative_url }}">Blog</a>
-              <a class="page-link" href="{{ "/projects/" | relative_url }}">Projects</a>
-              <a class="page-link" href="{{ "/cv/" | relative_url }}">CV</a>
-            </div>
-          </nav>
-        </div>
+        <!-- Hamburger button (small screens) -->
+        <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="site-nav">&#9776;</button>
+
+        <nav class="site-nav" id="site-nav">
+          <div class="trigger">
+            <a class="page-link" href="{{ "/" | relative_url }}">Home</a>
+            <a class="page-link" href="{{ "/archive" | relative_url }}">Blog</a>
+            <a class="page-link" href="{{ "/projects/" | relative_url }}">Projects</a>
+            <a class="page-link" href="{{ "/cv/" | relative_url }}">CV</a>
+          </div>
+        </nav>
+      </div>
     </header>
 
     <main class="page-content" aria-label="Content">
@@ -72,127 +47,21 @@
       </div>
     </footer>
 
-    <style>
-      /*
-    .site-header {
-      border-top: 5px solid #424242;
-      border-bottom: 1px solid #e8e8e8;
-      min-height: 56px;
-      background-color: white;
-    }*/
+    <script>
+      (function () {
+        // Mobile menu toggle
+        var toggle = document.querySelector(".nav-toggle");
+        var nav = document.querySelector(".site-nav");
+        toggle.addEventListener("click", function () {
+          var open = nav.classList.toggle("active");
+          toggle.setAttribute("aria-expanded", open ? "true" : "false");
+        });
 
-    .site-nav {
-      float: right;
-      line-height: 56px;
-    }
-
-    .page-link {
-      color: #111;
-      text-decoration: none;
-      margin-left: 20px;
-    }
-
-    .page-link:hover {
-      color: #2a7ae2;
-    }
-
-    .wrapper {
-      max-width: 800px;
-      margin-right: auto;
-      margin-left: auto;
-      padding-right: 20px;
-      padding-left: 20px;
-    }
-
-    .page-content {
-      padding: 20px 0;
-    }
-
-    .site-footer {
-      border-top: 1px solid #e8e8e8;
-      padding: 20px 0;
-    }
-
-    .footer-col-wrapper {
-      display: flex;
-      justify-content: space-between;
-    }
-
-
-    @media (max-width: 600px) {
-      .site-nav {
-        position: absolute;
-        top: 9px;
-        right: 15px;
-        background-color: white;
-        border: 1px solid #e8e8e8;
-        border-radius: 5px;
-        text-align: right;
-      }
-
-      .page-link {
-        display: block;
-        padding: 5px 10px;
-        margin: 0;
-      }
-    }
-
-    .nav-toggle {
-  display: none;
-  background: none;
-  border: none;
-  font-size: 28px;
-  line-height: 56px;
-  cursor: pointer;
-  float: right;
-}
-
-@media (max-width: 600px) {
-  .nav-toggle {
-    display: block;
-  }
-
-  .site-nav {
-    position: absolute;
-    top: 56px;
-    right: 20px;
-    background-color: white;
-    border: 1px solid #e8e8e8;
-    border-radius: 5px;
-    display: none; /* hidden by default */
-    width: 150px;
-    text-align: right;
-    z-index: 1000;
-  }
-
-  .site-nav.active {
-    display: block;
-  }
-
-  .page-link {
-    display: block;
-    padding: 10px 15px;
-    margin: 0;
-    border-bottom: 1px solid #e8e8e8;
-  }
-
-  .page-link:last-child {
-    border-bottom: none;
-  }
-
-
-
-
-    </style>
-  </body>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const toggle = document.querySelector(".nav-toggle");
-      const nav = document.querySelector(".site-nav");
-    
-      toggle.addEventListener("click", () => {
-        nav.classList.toggle("active");
-      });
-    });
+        // Let the browser pick text direction per element (Farsi = right-to-left, English = left-to-right)
+        document
+          .querySelectorAll(".page-content p, .page-content li, .page-content blockquote, .page-content h1, .page-content h2, .page-content h3, .page-content h4")
+          .forEach(function (el) { el.setAttribute("dir", "auto"); });
+      })();
     </script>
+  </body>
 </html>
