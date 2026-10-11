@@ -3,7 +3,7 @@ layout: page
 title: Sepehr's Blog 🙄 ☜(ﾟヮﾟ☜)
 ---
 
-{% include tesseract-ring-oscillator.html %}
+{% include afe-ecg.html %}
 
 Hi there! I'm {{ site.author }}, an Electronics Engineer.
 

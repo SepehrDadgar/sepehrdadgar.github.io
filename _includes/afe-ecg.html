@@ -1,0 +1,339 @@
+<!--
+  ECG analog front-end diagram (homepage animation).
+  One synthetic heartbeat is shown at four nodes of an ECG signal chain:
+    1. electrodes  - tiny ecg riding on a large dc offset, baseline drift and mains hum
+    2. amplifier   - offset blocked (ac coupling), gain applied, common-mode hum mostly rejected
+    3. filter      - band-limited, leftover drift/noise smoothed away
+    4. adc         - sampled and quantized (4-bit on purpose so the steps are visible)
+  The traces are drawn as a monitor-style sweep. The wave itself is synthetic: a sum of gaussians
+  for the P, Q, R, S and T waves, with slow heart-rate variability. No libraries, no network.
+  Pauses when scrolled out of view; shows a still frame if the visitor prefers reduced motion.
+  Colours/fonts come from the site (inherits the page font; tweak the --afe-* variables below).
+-->
+<figure class="afe" aria-label="Diagram: one ECG heartbeat passing through an analog front-end. Electrodes, amplifier, filter, ADC.">
+  <div class="afe-stages">
+    <div class="afe-stage">
+      <div class="afe-block">electrodes</div>
+      <div class="afe-scope-box"><canvas class="afe-scope" aria-hidden="true"></canvas></div>
+      <p class="afe-note">tiny ecg on a big dc offset, with drift and hum</p>
+    </div>
+    <div class="afe-stage">
+      <div class="afe-block">amplifier</div>
+      <div class="afe-scope-box"><canvas class="afe-scope" aria-hidden="true"></canvas></div>
+      <p class="afe-note">blocks the offset, amplifies, rejects common-mode hum</p>
+    </div>
+    <div class="afe-stage">
+      <div class="afe-block">filter</div>
+      <div class="afe-scope-box"><canvas class="afe-scope" aria-hidden="true"></canvas></div>
+      <p class="afe-note">keeps the ecg band, smooths what's left</p>
+    </div>
+    <div class="afe-stage">
+      <div class="afe-block">adc</div>
+      <div class="afe-scope-box"><canvas class="afe-scope" aria-hidden="true"></canvas><span class="afe-code" aria-hidden="true">0000</span></div>
+      <p class="afe-note">samples the wave and turns it into bits</p>
+    </div>
+  </div>
+  <figcaption class="afe-caption">the same heartbeat at each stage of an ecg analog front-end. the adc is only 4-bit here so you can see the steps.</figcaption>
+</figure>
+
+<style>
+  .afe {
+    --afe-ink: #111;
+    --afe-muted: #666;
+    --afe-line: #ddd;
+    --afe-accent: #2a7ae2;
+    margin: 0 0 1.75rem;
+  }
+
+  .afe-stages {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    column-gap: 30px;
+  }
+
+  .afe-stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .afe-block {
+    position: relative;
+    border: 1px solid var(--afe-ink);
+    padding: 0.35rem 0.5rem;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  /* arrow from one block to the next: a line plus a small head */
+  .afe-stage:not(:last-child) .afe-block::after {
+    content: "";
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    width: 30px;
+    height: 1px;
+    background: var(--afe-ink);
+  }
+
+  .afe-stage:not(:last-child) .afe-block::before {
+    content: "";
+    position: absolute;
+    left: calc(100% + 24px);
+    top: calc(50% - 4px);
+    border-left: 6px solid var(--afe-ink);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+  }
+
+  .afe-scope-box {
+    position: relative;
+    border: 1px solid var(--afe-line);
+  }
+
+  .afe-scope {
+    display: block;
+    width: 100%;
+    height: 88px;
+  }
+
+  .afe-code {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    font-size: 0.75rem;
+    line-height: 1;
+    color: var(--afe-accent);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .afe .afe-note {
+    margin: 0;
+    min-height: 2.8em;
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--afe-muted);
+  }
+
+  .afe .afe-caption {
+    margin-top: 0.9rem;
+    font-size: 0.8rem;
+    color: var(--afe-muted);
+  }
+
+  /* phones: one row per stage (label | trace), arrows point down */
+  @media (max-width: 600px) {
+    .afe-stages {
+      grid-template-columns: 1fr;
+      row-gap: 22px;
+    }
+
+    .afe-stage {
+      display: grid;
+      grid-template-columns: 6rem minmax(0, 1fr);
+      column-gap: 0.75rem;
+      align-items: stretch;
+    }
+
+    .afe-block {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .afe-scope {
+      height: 64px;
+    }
+
+    .afe .afe-note {
+      display: none;
+    }
+
+    .afe-stage:not(:last-child) .afe-block::after {
+      left: 50%;
+      top: 100%;
+      width: 1px;
+      height: 22px;
+    }
+
+    .afe-stage:not(:last-child) .afe-block::before {
+      left: calc(50% - 4px);
+      top: calc(100% + 16px);
+      border-left: 4px solid transparent;
+      border-right: 4px solid transparent;
+      border-top: 6px solid var(--afe-ink);
+      border-bottom: 0;
+    }
+  }
+</style>
+
+<script>
+(function () {
+  var TAU = Math.PI * 2;
+  var WINDOW = 2.5;     // seconds of ecg per sweep
+  var GAP = 0.08;       // blank stretch ahead of the sweep cursor (fraction of a sweep)
+  var DELAY = 0.3;      // illustrative delay between stages, seconds
+  var FS = 36;          // adc sample rate used in the picture, Hz
+  var BITS = 4;         // adc resolution used in the picture
+  var ORIGIN = -0.3;    // where the zero line sits: -1 (bottom) .. 1 (top)
+  var STILL_T = 6.3;    // moment shown when motion is reduced
+
+  // P, Q, R, S, T as [centre (rad around the R peak), height, width (rad)]
+  var WAVES = [
+    [-1.05, 0.12, 0.24],
+    [-0.20, -0.12, 0.07],
+    [0.00, 1.00, 0.09],
+    [0.20, -0.20, 0.07],
+    [1.60, 0.28, 0.38]
+  ];
+
+  function ecg(t) {
+    // ~66 bpm with a slow wobble in heart rate
+    var phase = 1.1 * (t - (0.04 / (TAU * 0.12)) * Math.cos(TAU * 0.12 * t));
+    var theta = (phase - Math.floor(phase)) * TAU - Math.PI;
+    var v = 0;
+    for (var i = 0; i < WAVES.length; i++) {
+      var d = theta - WAVES[i][0];
+      v += WAVES[i][1] * Math.exp(-(d * d) / (2 * WAVES[i][2] * WAVES[i][2]));
+    }
+    return v;
+  }
+
+  function drift(t) { return 0.6 * Math.sin(TAU * 0.17 * t + 1.3) + 0.4 * Math.sin(TAU * 0.06 * t + 0.4); }
+  function hum(t) { return Math.sin(TAU * 16 * t); } // drawn slower than real mains so it stays visible
+  function fuzz(t) { return 0.6 * Math.sin(TAU * 41.7 * t + 0.9) + 0.4 * Math.sin(TAU * 67.3 * t + 2.1); }
+
+  function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+  var LEVELS = (1 << BITS) - 1;
+
+  function cleanSignal(t) { return 0.85 * (ecg(t) + 0.04 * drift(t)); }
+
+  function adcCode(t) {
+    var ts = Math.floor(t * FS) / FS; // sample and hold
+    return clamp(Math.round((ORIGIN + cleanSignal(ts) + 1) / 2 * LEVELS), 0, LEVELS);
+  }
+
+  // vertical position (-1..1) of stage k at time t
+  function level(k, t) {
+    var e = ecg(t);
+    if (k === 0) return ORIGIN + 0.5 + 0.22 * (e + 0.35 * drift(t) + 0.3 * hum(t) + 0.12 * fuzz(t));
+    if (k === 1) return ORIGIN + 0.85 * (e + 0.10 * drift(t) + 0.05 * hum(t) + 0.06 * fuzz(t));
+    if (k === 2) return ORIGIN + cleanSignal(t);
+    return adcCode(t) / LEVELS * 2 - 1;
+  }
+
+  function init(root) {
+    var canvases = root.querySelectorAll(".afe-scope");
+    var codeEl = root.querySelector(".afe-code");
+    var style = getComputedStyle(root);
+    var INK = style.getPropertyValue("--afe-ink").trim() || "#111";
+    var LINE = style.getPropertyValue("--afe-line").trim() || "#ddd";
+    var ACCENT = style.getPropertyValue("--afe-accent").trim() || "#2a7ae2";
+    var reduced = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var scopes = [];
+    var lastCode = "";
+
+    for (var i = 0; i < canvases.length; i++) {
+      scopes.push({ k: i, canvas: canvases[i], ctx: canvases[i].getContext("2d"), w: 0, h: 0 });
+    }
+
+    function resize() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      scopes.forEach(function (s) {
+        s.w = s.canvas.clientWidth;
+        s.h = s.canvas.clientHeight;
+        s.canvas.width = Math.round(s.w * dpr);
+        s.canvas.height = Math.round(s.h * dpr);
+        s.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      });
+      if (reduced) drawAll(0, true);
+    }
+
+    function drawScope(s, t, still) {
+      var w = s.w, h = s.h, ctx = s.ctx;
+      if (!w || !h) return;
+      ctx.clearRect(0, 0, w, h);
+
+      // zero line
+      var y0 = h * (0.5 - 0.5 * ORIGIN);
+      ctx.strokeStyle = LINE;
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(0, y0);
+      ctx.lineTo(w, y0);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // trace: a monitor-style sweep, newest data at the cursor, a short gap just ahead of it
+      var tk = (still ? STILL_T : t) - s.k * DELAY;
+      var xc = still ? w : (((tk % WINDOW) + WINDOW) % WINDOW) / WINDOW * w;
+      ctx.strokeStyle = s.k === 3 ? ACCENT : INK;
+      ctx.lineWidth = 1.4;
+      ctx.lineJoin = "round";
+      ctx.beginPath();
+      var pen = false;
+      for (var x = 0; x <= w; x += 0.5) {
+        var age = still ? (w - x) / w * WINDOW : ((((xc - x) % w) + w) % w) / w * WINDOW;
+        if (!still && age > WINDOW * (1 - GAP)) { pen = false; continue; }
+        var y = h * (0.5 - 0.5 * level(s.k, tk - age));
+        y = clamp(y, 1, h - 1);
+        if (pen) ctx.lineTo(x, y); else { ctx.moveTo(x, y); pen = true; }
+      }
+      ctx.stroke();
+
+      if (!still) {
+        ctx.fillStyle = s.k === 3 ? ACCENT : INK;
+        ctx.beginPath();
+        ctx.arc(xc, clamp(h * (0.5 - 0.5 * level(s.k, tk)), 1, h - 1), 2.2, 0, TAU);
+        ctx.fill();
+      }
+    }
+
+    function drawAll(t, still) {
+      scopes.forEach(function (s) { drawScope(s, t, still); });
+      if (codeEl) {
+        var code = adcCode((still ? STILL_T : t) - 3 * DELAY).toString(2);
+        while (code.length < BITS) code = "0" + code;
+        if (code !== lastCode) { codeEl.textContent = code; lastCode = code; }
+      }
+    }
+
+    var raf = 0;
+    var visible = true;
+
+    function frame(now) {
+      drawAll(now / 1000, false);
+      raf = requestAnimationFrame(frame);
+    }
+
+    function start() { if (!raf && visible && !reduced) raf = requestAnimationFrame(frame); }
+    function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+
+    if (window.ResizeObserver) {
+      new ResizeObserver(resize).observe(root);
+    } else {
+      window.addEventListener("resize", resize);
+    }
+    resize();
+
+    if (reduced) {
+      drawAll(0, true);
+    } else {
+      if (window.IntersectionObserver) {
+        new IntersectionObserver(function (entries) {
+          visible = entries[entries.length - 1].isIntersecting;
+          if (visible) start(); else stop();
+        }).observe(root);
+      }
+      start();
+    }
+  }
+
+  var nodes = document.querySelectorAll(".afe");
+  for (var n = 0; n < nodes.length; n++) init(nodes[n]);
+})();
+</script>
