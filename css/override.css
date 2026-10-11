@@ -1,9 +1,233 @@
+/* Site styles: everything that used to be spread over inline <style> blocks.
+   Loaded after minima's main.css, so rules here win over the theme. */
+
+/* ---- base ---- */
+body {
+  font-family: 'Vazir', sans-serif;
+}
+
 hr {
   margin-top: 30px;
   margin-bottom: 20px;
 }
 
-/* Post navigation links */
+/* ---- page frame ---- */
+.wrapper {
+  max-width: 800px;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 20px;
+  padding-left: 20px;
+}
+
+.page-content {
+  padding: 20px 0;
+}
+
+.site-title {
+  display: inline-block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.site-logo {
+  height: 48px;
+  width: auto;
+  vertical-align: middle;
+}
+
+.site-nav {
+  float: right;
+  line-height: 56px;
+}
+
+.page-link {
+  color: #111;
+  text-decoration: none;
+  margin-left: 20px;
+}
+
+.page-link:hover {
+  color: #2a7ae2;
+}
+
+.site-footer {
+  border-top: 1px solid #e8e8e8;
+  padding: 20px 0;
+}
+
+.footer-col-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* mobile menu button: hidden on wide screens */
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  font-size: 28px;
+  line-height: 56px;
+  cursor: pointer;
+  float: right;
+}
+
+@media (max-width: 600px) {
+  .nav-toggle {
+    display: block;
+  }
+
+  .site-nav {
+    position: absolute;
+    top: 56px;
+    right: 20px;
+    background-color: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 5px;
+    display: none; /* hidden until the button is pressed */
+    width: 150px;
+    text-align: right;
+    z-index: 1000;
+  }
+
+  .site-nav.active {
+    display: block;
+  }
+
+  .page-link {
+    display: block;
+    padding: 10px 15px;
+    margin: 0;
+    border-bottom: 1px solid #e8e8e8;
+  }
+
+  .page-link:last-child {
+    border-bottom: none;
+  }
+}
+
+/* ---- footer social links ---- */
+.social-links {
+  display: flex;
+  gap: 15px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.social-links a {
+  color: #666;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.2s;
+}
+
+.social-links a:hover {
+  color: #2a7ae2;
+}
+
+.social-links i {
+  font-size: 1.2em;
+}
+
+@media (max-width: 600px) {
+  .social-links {
+    justify-content: flex-start;
+    margin-top: 10px;
+  }
+
+  .footer-col-wrapper {
+    flex-direction: column;
+  }
+}
+
+/* ---- home page ---- */
+.home .post-title {
+  margin-bottom: 0.5rem;
+  font-size: 1.7rem;
+}
+
+/* ---- blog posts ---- */
+.blog-post .post-header {
+  margin-bottom: 2rem;
+}
+
+.blog-post .post-title {
+  margin-bottom: 0.5rem;
+  font-size: 2rem;
+}
+
+.blog-post .post-meta {
+  color: #666;
+  font-size: 0.9em;
+  margin: 0;
+}
+
+.blog-post .post-content {
+  line-height: 1.6;
+}
+
+.blog-post .post-content h2 {
+  margin-top: 2rem;
+}
+
+.blog-post .post-content p {
+  margin: 1rem 0;
+}
+
+.share-links {
+  margin: 1.5rem 0;
+  padding: 1rem 0;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+}
+
+/* share buttons */
+.share-label {
+  color: silver;
+}
+
+.share-buttons {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.share-buttons::after {
+  content: "";
+  display: block;
+  clear: both;
+}
+
+.share-buttons a {
+  display: block;
+  float: left;
+  height: 36px;
+  width: 32px;
+  text-align: center;
+}
+
+.share-buttons svg {
+  height: 16px;
+  fill: #d5d5d5;
+  margin-top: 10px;
+}
+
+.share-buttons a:hover svg,
+.share-buttons a:focus-visible svg { fill: #7d7d7d; }
+.share-buttons .facebook:hover svg,
+.share-buttons .facebook:focus-visible svg { fill: #3b5998; }
+.share-buttons .twitter:hover svg,
+.share-buttons .twitter:focus-visible svg { fill: #55acee; }
+.share-buttons .linkedin:hover svg,
+.share-buttons .linkedin:focus-visible svg { fill: #0077b5; }
+
+.share-buttons .facebook svg { height: 18px; margin-top: 9px; }
+.share-buttons .twitter svg { height: 20px; margin-top: 8px; }
+.share-buttons .linkedin svg { height: 19px; margin-top: 7px; }
+.share-buttons .mail svg { height: 14px; margin-top: 11px; }
+
+/* previous / next post links */
 .post_navi {
   display: flex;
 }
@@ -44,14 +268,50 @@ hr {
   opacity: 0.3;
 }
 
-
-
-body {
-  font-family: 'Vazir', sans-serif;
+/* ---- code blocks: highlight.js colours only; keep minima's box ---- */
+pre code.hljs {
+  padding: 0;
+  background: transparent;
 }
 
+/* ---- projects ---- */
+.project-meta {
+  color: #666;
+  font-size: 0.9em;
+}
 
+.project-desc {
+  margin: 0 0 0.5rem;
+}
 
-html[lang="fa"] body {
-  font-family: 'Vazir', sans-serif;
+.project-page .project-header {
+  margin-bottom: 2rem;
+}
+
+.project-page .project-title {
+  font-size: 2rem;
+  margin: 0 0 0.5rem;
+}
+
+.project-page .project-meta {
+  margin: 0;
+}
+
+.project-content {
+  line-height: 1.7;
+}
+
+.project-content img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 1.5rem auto;
+}
+
+.project-links {
+  margin-top: 2rem;
+}
+
+.project-links a {
+  margin-right: 1.5rem;
 }

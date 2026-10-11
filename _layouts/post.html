@@ -1,33 +1,8 @@
 ---
 layout: default
 ---
-<link href="/css/override.css" rel="stylesheet" type="text/css">
-<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+<article class="post h-entry blog-post" itemscope itemtype="http://schema.org/BlogPosting">
   <header class="post-header">
-    <script>
-      window.MathJax = {
-        tex: {
-          inlineMath: [['$', '$'], ['\\(', '\\)']],
-          displayMath: [['$$', '$$'], ['\\[', '\\]']]
-        }
-      };
-      </script>
-      <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-      <script>
-        document.addEventListener("DOMContentLoaded", () => {
-          const paragraphs = document.querySelectorAll("p");
-      
-          paragraphs.forEach(p => {
-            const text = p.textContent || p.innerText;
-            const isFarsi = /[\u0600-\u06FF\u0750-\u077F\u0590-\u05FF\u08A0-\u08FF\uFB50-\uFDCF\uFDF0-\uFDFF\uFE70-\uFEFF]/.test(text);
-            p.style.direction = isFarsi ? "rtl" : "ltr";
-            p.style.textAlign = isFarsi ? "right" : "left";
-          });
-        });
-      </script>
-      <link href="https://cdn.jsdelivr.net/npm/vazir-font@30.1.0/dist/font-face.css" rel="stylesheet" type="text/css" />
-      
-      
     <h1 class="post-title p-name" itemprop="name headline">{{ page.title | escape }}</h1>
     <p class="post-meta">
       <time class="dt-published" datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
@@ -53,40 +28,4 @@ layout: default
   </div>
 
   <a class="u-url" href="{{ page.url | relative_url }}" hidden></a>
-
-  <style>
-    .post-header {
-      margin-bottom: 2rem;
-    }
-    
-    .post-title {
-      margin-bottom: 0.5rem;
-      font-size: 2rem;
-    }
-    
-    .post-meta {
-      color: #666;
-      font-size: 0.9em;
-      margin: 0;
-    }
-    
-    .post-content {
-      line-height: 1.6;
-    }
-    
-    .post-content h2 {
-      margin-top: 2rem;
-    }
-    
-    .post-content p {
-      margin: 1rem 0;
-    }
-    
-    .share-links {
-      margin: 1.5rem 0;
-      padding: 1rem 0;
-      border-top: 1px solid #eee;
-      border-bottom: 1px solid #eee;
-    }
-  </style>
 </article>

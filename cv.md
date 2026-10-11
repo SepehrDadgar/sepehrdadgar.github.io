@@ -24,12 +24,10 @@ Electronics Engineer
 - **Other:** IC, PCB Design, Embedded Systems
 
 ## Projects
-{% for project in site.projects %}
-- [{{ project.title }}]({{ project.url | relative_url }}) - {{ project.description }}
+{% assign projects = site.projects | sort: "date" | reverse %}
+{% for project in projects %}
+- [{{ project.title }}]({{ project.url | relative_url }}){% if project.description %} - {{ project.description }}{% endif %}
 {% endfor %}
-
-## Certifications
-- 
 
 ## Languages
 - English (Fluent)

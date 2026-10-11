@@ -1,3 +1,6 @@
+---
+math: true
+---
 # Why Does the Root Locus Start at Open-Loop Poles?
 If you’ve ever studied control systems, you’ve probably come across root locus diagrams. They’re plots that show how the system poles move as you change the gain  $K$ . But why does the root locus always start at the open-loop poles when  $K = 0$ ? Let’s break it down in simple terms.
 
