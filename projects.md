@@ -1,6 +1,7 @@
 ---
 layout: page
 title: Projects
+hand_title: projects
 permalink: /projects/
 ---
 

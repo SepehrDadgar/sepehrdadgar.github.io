@@ -15,14 +15,14 @@
         </a>
 
         <!-- Hamburger button (small screens) -->
-        <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="site-nav">&#9776;</button>
+        <button class="nav-toggle" aria-label="Toggle navigation" aria-expanded="false" aria-controls="site-nav"></button>
 
         <nav class="site-nav" id="site-nav">
           <div class="trigger">
-            <a class="page-link" href="{{ "/" | relative_url }}">Home</a>
-            <a class="page-link" href="{{ "/archive" | relative_url }}">Blog</a>
-            <a class="page-link" href="{{ "/projects/" | relative_url }}">Projects</a>
-            <a class="page-link" href="{{ "/cv/" | relative_url }}">CV</a>
+            <a class="page-link" href="{{ "/" | relative_url }}"><span class="hand-nav-home">Home</span></a>
+            <a class="page-link" href="{{ "/archive" | relative_url }}"><span class="hand-nav-blog">Blog</span></a>
+            <a class="page-link" href="{{ "/projects/" | relative_url }}"><span class="hand-nav-projects">Projects</span></a>
+            <a class="page-link" href="{{ "/cv/" | relative_url }}"><span class="hand-nav-cv">CV</span></a>
           </div>
         </nav>
       </div>
@@ -38,7 +38,7 @@
       <div class="wrapper">
         <div class="footer-col-wrapper">
           <div class="footer-col">
-            <p>{{ site.description | escape }}</p>
+            <p><span class="hand-tagline">{{ site.description | escape }}</span></p>
           </div>
           <div class="footer-col">
             {%- include social.html -%}

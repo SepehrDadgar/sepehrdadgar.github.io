@@ -315,3 +315,150 @@ pre code.hljs {
 .project-links a {
   margin-right: 1.5rem;
 }
+
+/* ====================================================================
+   Hand-drawn pieces (traced from layout.svg).
+   Each drawing is an SVG in assets/hand/ used as a CSS mask, so it takes
+   the colour of the text it replaces (links still turn blue on hover).
+   The real text stays in the HTML (moved off-screen) for screen readers,
+   search engines and Ctrl+F. If a browser can't do CSS masks, the @supports
+   test fails and the normal text shows instead.
+   Sizes = size in layout.svg x the scale of the screenshot it was traced on.
+   ==================================================================== */
+
+/* hamburger fallback glyph (replaced by the drawing where masks work) */
+.nav-toggle::before { content: "\2630"; }
+
+@supports ((-webkit-mask-image: url(x.svg)) or (mask-image: url(x.svg))) {
+  .hand-latest, .hand-touch, .hand-title, .hand-kaomoji, .hand-page-projects, .hand-page-archive {
+    display: inline-block; vertical-align: middle;
+    background-color: currentColor; text-indent: -9999px; overflow: hidden; white-space: nowrap;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-position: 0 0; mask-position: 0 0;
+    -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+  }
+  h1.hand-page-projects, h1.hand-page-archive, h2.hand-latest, h2.hand-touch { display: block; }
+  h2.hand-latest, h2.hand-touch { margin-top: 14px; }
+
+  /* desktop sizes */
+  .hand-latest {
+    width: 260px; height: 51px;
+    -webkit-mask-image: url('../assets/hand/latest.svg'); mask-image: url('../assets/hand/latest.svg');
+  }
+  .hand-touch {
+    width: 185px; height: 37px;
+    -webkit-mask-image: url('../assets/hand/touch.svg'); mask-image: url('../assets/hand/touch.svg');
+  }
+  .hand-title {
+    width: 156px; height: 45px;
+    -webkit-mask-image: url('../assets/hand/title.svg'); mask-image: url('../assets/hand/title.svg');
+  }
+  .hand-kaomoji {
+    width: 125px; height: 42px;
+    -webkit-mask-image: url('../assets/hand/kaomoji.svg'); mask-image: url('../assets/hand/kaomoji.svg');
+  }
+  .hand-page-projects {
+    width: 137px; height: 50px;
+    -webkit-mask-image: url('../assets/hand/page-projects.svg'); mask-image: url('../assets/hand/page-projects.svg');
+  }
+  .hand-page-archive {
+    width: 223px; height: 57px;
+    -webkit-mask-image: url('../assets/hand/page-archive.svg'); mask-image: url('../assets/hand/page-archive.svg');
+  }
+
+  @media (max-width: 800px) {
+    .hand-page-projects { width: 117px; height: 43px; }
+    .hand-page-archive { width: 191px; height: 49px; }
+  }
+
+  /* phone versions (you drew these separately) */
+  @media (max-width: 600px) {
+    .hand-latest { width: 226px; height: 43px; -webkit-mask-image: url('../assets/hand/m-latest.svg'); mask-image: url('../assets/hand/m-latest.svg'); }
+    .hand-touch { width: 160px; height: 31px; -webkit-mask-image: url('../assets/hand/m-touch.svg'); mask-image: url('../assets/hand/m-touch.svg'); }
+    .hand-title { width: 152px; height: 43px; -webkit-mask-image: url('../assets/hand/m-title.svg'); mask-image: url('../assets/hand/m-title.svg'); }
+    .hand-kaomoji { width: 120px; height: 40px; -webkit-mask-image: url('../assets/hand/m-kaomoji.svg'); mask-image: url('../assets/hand/m-kaomoji.svg'); }
+  }
+
+  /* hr (the --- / ___ divider) */
+  hr {
+    border: 0; height: 18px; margin: 26px 0 16px;
+    background-color: #111;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+    -webkit-mask-image: url('../assets/hand/hr.svg'); mask-image: url('../assets/hand/hr.svg');
+  }
+  @media (max-width: 600px) { hr { height: 9px; -webkit-mask-image: url('../assets/hand/m-hr.svg'); mask-image: url('../assets/hand/m-hr.svg'); } }
+
+  /* header rule: replaces the thin grey border under the header */
+  .site-header { border-bottom: 0; }
+  .site-header::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -2px; height: 15px;
+    pointer-events: none; background-color: #111;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+    -webkit-mask-image: url('../assets/hand/rule-header.svg'); mask-image: url('../assets/hand/rule-header.svg');
+  }
+  @media (max-width: 600px) {
+    .site-header::after { height: 7px; -webkit-mask-image: url('../assets/hand/m-rule-header.svg'); mask-image: url('../assets/hand/m-rule-header.svg'); }
+  }
+
+  /* hamburger */
+  @media (max-width: 600px) {
+    .nav-toggle { display: flex; align-items: center; height: 56px; padding: 0 4px; color: #111; }
+    .nav-toggle::before {
+      content: ""; display: block; width: 29px; height: 24px;
+      background-color: currentColor;
+      -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+      -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+      -webkit-mask-image: url('../assets/hand/m-hamburger.svg'); mask-image: url('../assets/hand/m-hamburger.svg');
+    }
+  }
+
+  /* desktop only: nav words, footer rule and tagline (your phone mockup keeps these as plain text) */
+  @media (min-width: 601px) {
+    .hand-nav-home, .hand-nav-blog, .hand-nav-projects, .hand-nav-cv, .hand-tagline {
+      display: inline-block; vertical-align: middle;
+      background-color: currentColor; text-indent: -9999px; overflow: hidden; white-space: nowrap;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-position: 0 0; mask-position: 0 0;
+    -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+    }
+    .hand-nav-home {
+      width: 43px; height: 21px;
+      -webkit-mask-image: url('../assets/hand/nav-home.svg'); mask-image: url('../assets/hand/nav-home.svg');
+    }
+    .hand-nav-blog {
+      width: 36px; height: 30px;
+      -webkit-mask-image: url('../assets/hand/nav-blog.svg'); mask-image: url('../assets/hand/nav-blog.svg');
+    }
+    .hand-nav-projects {
+      width: 62px; height: 23px;
+      -webkit-mask-image: url('../assets/hand/nav-projects.svg'); mask-image: url('../assets/hand/nav-projects.svg');
+    }
+    .hand-nav-cv {
+      width: 26px; height: 19px;
+      -webkit-mask-image: url('../assets/hand/nav-cv.svg'); mask-image: url('../assets/hand/nav-cv.svg');
+    }
+    .hand-tagline {
+      width: 247px; height: 26px;
+      -webkit-mask-image: url('../assets/hand/tagline.svg'); mask-image: url('../assets/hand/tagline.svg');
+    }
+
+    /* top-align the nav words like in the mockup (Blog's g hangs below) */
+    .hand-nav-home, .hand-nav-blog, .hand-nav-projects, .hand-nav-cv { position: relative; }
+    .hand-tagline { color: #111; } /* black like in the mockup (minima's footer text is grey) */
+    .hand-nav-home { top: -4px; }
+    .hand-nav-blog { top: 0px; }
+    .hand-nav-projects { top: -4px; }
+    .hand-nav-cv { top: -6px; }
+
+    .site-footer { border-top: 0; position: relative; }
+    .site-footer::before {
+      content: ""; position: absolute; left: 0; right: 0; top: -7px; height: 15px;
+      pointer-events: none; background-color: #111;
+      -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+      -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+      -webkit-mask-image: url('../assets/hand/rule-footer.svg'); mask-image: url('../assets/hand/rule-footer.svg');
+    }
+  }
+}

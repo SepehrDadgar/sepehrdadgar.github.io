@@ -1,0 +1,27 @@
+---
+layout: default
+---
+{%- comment -%}
+  Same as minima's page layout, plus support for hand-drawn titles.
+  Add "hand_title: <name>" to a page's front matter:
+    projects / archive  -> the title is replaced by the drawing in assets/hand/page-<name>.svg
+    home                -> the site title + kaomoji are drawn, the emoji stays real text
+  The real title text stays in the HTML (hidden off-screen) for screen readers and search.
+{%- endcomment -%}
+<article class="post">
+
+  <header class="post-header">
+    <h1 class="post-title{% if page.hand_title and page.hand_title != 'home' %} hand-page-{{ page.hand_title }}{% endif %}">
+      {%- if page.hand_title == 'home' -%}
+        <span class="hand-title">Sepehr's Blog</span> 🙄 <span class="hand-kaomoji">☜(ﾟヮﾟ☜)</span>
+      {%- else -%}
+        {{ page.title | escape }}
+      {%- endif -%}
+    </h1>
+  </header>
+
+  <div class="post-content">
+    {{ content }}
+  </div>
+
+</article>
