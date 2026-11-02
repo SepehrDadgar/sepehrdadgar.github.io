@@ -416,7 +416,23 @@ pre code.hljs {
     }
   }
 
-  /* desktop only: nav words and footer rule (your phone mockup keeps these as plain text) */
+  /* footer rule: the hand-drawn line above the tagline, on desktop and phones */
+  .site-footer { border-top: 0; position: relative; }
+  .site-footer::before {
+    content: ""; position: absolute; left: 0; right: 0; top: -7px; height: 15px;
+    pointer-events: none; background-color: #111;
+    -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
+    -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
+    -webkit-mask-image: url('../assets/hand/rule-footer.svg'); mask-image: url('../assets/hand/rule-footer.svg');
+  }
+  @media (max-width: 600px) {
+    .site-footer::before {
+      top: -3px; height: 7px;
+      -webkit-mask-image: url('../assets/hand/m-rule-header.svg'); mask-image: url('../assets/hand/m-rule-header.svg');
+    }
+  }
+
+  /* desktop only: nav words (your phone mockup keeps these as plain text) */
   @media (min-width: 601px) {
     .hand-nav-home, .hand-nav-blog, .hand-nav-projects, .hand-nav-cv {
       display: inline-block; vertical-align: middle;
@@ -449,21 +465,14 @@ pre code.hljs {
     .hand-nav-projects { top: -4px; }
     .hand-nav-cv { top: -6px; }
 
-    .site-footer { border-top: 0; position: relative; }
-    .site-footer::before {
-      content: ""; position: absolute; left: 0; right: 0; top: -7px; height: 15px;
-      pointer-events: none; background-color: #111;
-      -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
-      -webkit-mask-size: 100% 100%; mask-size: 100% 100%;
-      -webkit-mask-image: url('../assets/hand/rule-footer.svg'); mask-image: url('../assets/hand/rule-footer.svg');
-    }
   }
 }
 
 /* ====================================================================
    Handwriting font (made from your template sample): English only.
-   Headings use it; Farsi and any character it doesn't have yet (digits,
-   hyphen, brackets ...) fall back to Vazir automatically.
+   Headings use it; Farsi and any character it doesn't have yet (for example
+   $ % + = [ ] _ and the long dashes) fall back to Vazir automatically.
+   The hyphen is a stand-in made from the crossbar of your 7 until you draw one.
    ==================================================================== */
 @font-face {
   font-family: 'Sepehr Hand';
