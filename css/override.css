@@ -330,7 +330,7 @@ pre code.hljs {
 .nav-toggle::before { content: "\2630"; }
 
 @supports ((-webkit-mask-image: url(x.svg)) or (mask-image: url(x.svg))) {
-  .hand-latest, .hand-touch, .hand-title, .hand-kaomoji, .hand-page-projects, .hand-page-archive {
+  .hand-latest, .hand-touch, .hand-title, .hand-kaomoji, .hand-page-projects, .hand-page-archive, .hand-tagline {
     display: inline-block; vertical-align: middle;
     background-color: currentColor; text-indent: -9999px; overflow: hidden; white-space: nowrap;
     -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
@@ -370,6 +370,8 @@ pre code.hljs {
     .hand-page-projects { width: 117px; height: 43px; }
     .hand-page-archive { width: 191px; height: 49px; }
   }
+
+  .hand-tagline { width: 247px; height: 26px; color: #111; -webkit-mask-image: url('../assets/hand/tagline.svg'); mask-image: url('../assets/hand/tagline.svg'); } /* black like in the mockup (minima's footer text is grey) */
 
   /* phone versions (you drew these separately) */
   @media (max-width: 600px) {
@@ -414,9 +416,9 @@ pre code.hljs {
     }
   }
 
-  /* desktop only: nav words, footer rule and tagline (your phone mockup keeps these as plain text) */
+  /* desktop only: nav words and footer rule (your phone mockup keeps these as plain text) */
   @media (min-width: 601px) {
-    .hand-nav-home, .hand-nav-blog, .hand-nav-projects, .hand-nav-cv, .hand-tagline {
+    .hand-nav-home, .hand-nav-blog, .hand-nav-projects, .hand-nav-cv {
       display: inline-block; vertical-align: middle;
       background-color: currentColor; text-indent: -9999px; overflow: hidden; white-space: nowrap;
     -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat;
@@ -439,14 +441,9 @@ pre code.hljs {
       width: 26px; height: 19px;
       -webkit-mask-image: url('../assets/hand/nav-cv.svg'); mask-image: url('../assets/hand/nav-cv.svg');
     }
-    .hand-tagline {
-      width: 247px; height: 26px;
-      -webkit-mask-image: url('../assets/hand/tagline.svg'); mask-image: url('../assets/hand/tagline.svg');
-    }
 
     /* top-align the nav words like in the mockup (Blog's g hangs below) */
     .hand-nav-home, .hand-nav-blog, .hand-nav-projects, .hand-nav-cv { position: relative; }
-    .hand-tagline { color: #111; } /* black like in the mockup (minima's footer text is grey) */
     .hand-nav-home { top: -4px; }
     .hand-nav-blog { top: 0px; }
     .hand-nav-projects { top: -4px; }
@@ -461,4 +458,70 @@ pre code.hljs {
       -webkit-mask-image: url('../assets/hand/rule-footer.svg'); mask-image: url('../assets/hand/rule-footer.svg');
     }
   }
+}
+
+/* ====================================================================
+   Handwriting font (made from your template sample): English only.
+   Headings use it; Farsi and any character it doesn't have yet (digits,
+   hyphen, brackets ...) fall back to Vazir automatically.
+   ==================================================================== */
+@font-face {
+  font-family: 'Sepehr Hand';
+  src: url('../assets/fonts/sepehr-hand.woff2') format('woff2'),
+       url('../assets/fonts/sepehr-hand.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.post-title,
+.project-title,
+.page-content h1,
+.page-content h2,
+.page-content h3,
+.page-content h4 {
+  font-family: 'Sepehr Hand', 'Vazir', sans-serif;
+  font-weight: normal;
+  letter-spacing: 0;
+}
+
+/* the font has a smaller x-height than Vazir, so headings get a little more size */
+.page-content h2 { font-size: 2rem; }
+.page-content h3 { font-size: 1.6rem; }
+.page-content h4 { font-size: 1.3rem; }
+
+/* ====================================================================
+   Link underlines: a hand-drawn marker stroke (assets/hand/underline-*.svg)
+   drawn under a link on hover/focus, instead of the browser's straight line.
+   Two variants alternate so links don't all look identical.
+   ==================================================================== */
+.page-content a {
+  background-image: url('../assets/hand/underline-a.svg');
+  background-repeat: no-repeat;
+  background-position: 0 100%;
+  background-size: 0 8px;
+  padding-bottom: 4px;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.page-content a:nth-of-type(even) {
+  background-image: url('../assets/hand/underline-b.svg');
+}
+
+.page-content a:hover,
+.page-content a:focus-visible {
+  text-decoration: none;
+  background-size: 100% 8px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .page-content a { transition: background-size 0.18s ease-out; }
+}
+
+/* blocks that aren't inline text links keep their own look */
+.post_navi a,
+.share-buttons a {
+  background-image: none;
+  padding-bottom: 0;
 }
