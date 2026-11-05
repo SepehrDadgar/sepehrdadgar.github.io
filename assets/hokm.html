@@ -1,0 +1,247 @@
+<div id="hokm" class="fa" dir="rtl">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vazirmatn@33.0.3/Vazirmatn-font-face.css">
+<style>
+#hokm{--w:clamp(38px,9.5vw,52px);max-width:560px;margin:1.5em auto;user-select:none;-webkit-user-select:none}
+#hokm.fa{font-family:'Vazirmatn',Tahoma,sans-serif}
+#hokm .top{display:flex;justify-content:space-between;font-size:.9em;margin-bottom:.6em;gap:1em;flex-wrap:wrap}
+#hokm .tbl,#hokm .me{direction:ltr}
+#hokm.fa .lb,#hokm.fa .mid{direction:rtl}
+#hokm .tbl{display:grid;grid-template-areas:". t ." "l c r" ". b .";grid-template-columns:1fr 1.3fr 1fr;gap:.4em;text-align:center;align-items:center;justify-items:center}
+#hokm .st{grid-area:t}#hokm .sl{grid-area:l}#hokm .sr{grid-area:r}#hokm .sb{grid-area:b}#hokm .mid{grid-area:c;font-size:.9em;line-height:1.7}
+#hokm .seat{min-height:calc(var(--w)*1.4 + 1.8em)}
+#hokm .c{width:var(--w);height:calc(var(--w)*1.4);border:1px solid #222;border-radius:4px;background:#fff;color:#111;display:inline-flex;flex-direction:column;align-items:flex-start;padding:2px 4px;font-size:calc(var(--w)*.32);line-height:1.05;box-sizing:border-box;direction:ltr}
+#hokm .c i{font-style:normal;font-size:1.4em}
+#hokm .c.r,#hokm .rs{color:#b3261e}
+#hokm .c.win{outline:2px solid #2a8a5a;outline-offset:1px}
+#hokm .ph{width:var(--w);height:calc(var(--w)*1.4);border:1px dashed #999;border-radius:4px;box-sizing:border-box;opacity:.4}
+#hokm .me{display:flex;justify-content:center;margin:.8em 0 .4em;min-height:calc(var(--w)*1.4 + 8px);padding-top:8px}
+#hokm .me .c{margin-left:calc(var(--w)*-.4);transition:transform .1s}
+#hokm .me .c:first-child{margin-left:0}
+#hokm .me .c.ok{cursor:pointer}
+#hokm .me .c.ok:hover{transform:translateY(-8px)}
+#hokm .me .c.no{opacity:.35}
+#hokm .lb{font-size:.8em;opacity:.75}
+#hokm .msg{text-align:center;min-height:1.4em;margin:.5em 0}
+#hokm .last{text-align:center;font-size:.82em;opacity:.85;min-height:1.4em;margin:.3em 0}
+#hokm .btn{text-align:center;min-height:2em}
+#hokm button{font:inherit;background:none;color:inherit;border:1px solid currentColor;border-radius:3px;padding:.15em .7em;margin:0 .2em;cursor:pointer}
+</style>
+<div class="top"><span class="score"></span><span><a href="#" class="help"></a> · <a href="#" class="lang"></a></span></div>
+<div class="tbl">
+  <div class="seat st"></div><div class="seat sl"></div><div class="mid"></div><div class="seat sr"></div><div class="seat sb"></div>
+</div>
+<div class="me"></div>
+<div class="msg"></div>
+<div class="last"></div>
+<div class="btn"></div>
+</div>
+<script>
+(function(){
+var root=document.getElementById('hokm'),$=function(s){return root.querySelector(s)};
+var SU='♠♥♦♣',RK=['','','2','3','4','5','6','7','8','9','10','J','Q','K','A'],POS=['b','r','t','l'],DG='۰۱۲۳۴۵۶۷۸۹';
+var D={
+fa:{
+  names:['شما','حریف راست','هم‌تیمی','حریف چپ'],suits:['پیک','دل','خشت','گشنیز'],
+  score:function(a,b){return 'امتیاز: ما '+n(a)+' · آن‌ها '+n(b)+' (تا '+n(7)+')'},
+  help:'قوانین',lang:'English',trump:'حکم',tricks:'دست‌ها',led:'خال شروع',leader:'شروع‌کننده',
+  turn:'نوبت شماست',
+  think:function(p){return nm(p)+' در حال فکر…'},
+  hakemYou:'شما حاکم هستید. حکم را از ۵ کارت اول انتخاب کنید.',
+  hakemOther:function(p){return nm(p)+' حاکم است و حکم را انتخاب می‌کند…'},
+  took:function(p){return 'برنده‌ی دست: '+nm(p)},
+  hand:function(t,a,b,kot,over){return (t==0?'ما':'آن‌ها')+' دور را '+n(a)+'–'+n(b)+(t==0?' بردیم':' بردند')+(kot?' (کوت! +'+n(2)+')':'')+(over?'. بازی تمام شد؛ '+(t==0?'شما بردید!':'آن‌ها بردند.'):'')},
+  next:'دور بعدی',newgame:'بازی جدید',lastTrick:'آخرین دست',
+  rules:'حکم: چهار بازیکن؛ شما و هم‌تیمی‌تان (روبه‌رو) در برابر دو حریف. حاکم ۵ کارت اول را می‌بیند و خال حکم را اعلام می‌کند، سپس به همه ۱۳ کارت می‌رسد. اگر خال شروع‌شده را دارید باید همان را بازی کنید، وگرنه هر کارتی بزنید (حکم می‌برد). تیمی که اول ۷ دست ببرد دور را می‌برد؛ بردن هر ۷ دست (کوت) دو امتیاز دارد. اگر تیمِ حاکم ببرد حاکم می‌ماند، وگرنه حاکمیت به بازیکن بعدی می‌رسد. اولین تیمی که به ۷ امتیاز برسد برنده‌ی بازی است.'
+},
+en:{
+  names:['you','right opp','partner','left opp'],suits:['spades','hearts','diamonds','clubs'],
+  score:function(a,b){return 'games: us '+a+' · them '+b+' (first to 7)'},
+  help:'how it works',lang:'فارسی',trump:'trump',tricks:'tricks',led:'led suit',leader:'led',
+  turn:'your turn',
+  think:function(p){return nm(p)+' is thinking…'},
+  hakemYou:"you're the hakem. pick trump from your first 5 cards.",
+  hakemOther:function(p){return nm(p)+' is the hakem, picking trump…'},
+  took:function(p){return nm(p)+' took the trick'},
+  hand:function(t,a,b,kot,over){return (t==0?'we':'they')+' won the hand '+a+'–'+b+(kot?' (kot! +2)':'')+(over?'. game over, '+(t==0?'you win!':'they win.'):'')},
+  next:'next hand',newgame:'new game',lastTrick:'last trick',
+  rules:'hokm: 4 players, you + partner (opposite) vs the two opponents. the hakem sees 5 cards and names the trump suit, then everyone gets 13. follow the led suit if you can, otherwise play anything (trump wins). first team to 7 tricks wins the hand; a 7–0 sweep (kot) is worth 2. the hakem keeps the role if their team wins, otherwise it passes on. first to 7 points wins.'
+}};
+var lang='fa';try{if(localStorage.getItem('hokm-lang')==='en')lang='en'}catch(e){}
+var G={score:[0,0],hakem:rnd(4),over:false},H,curMsg=null,btn='';
+function T(k){var v=D[lang][k],a=[].slice.call(arguments,1);return typeof v=='function'?v.apply(null,a):v}
+function n(x){x=String(x);return lang=='fa'?x.replace(/\d/g,function(d){return DG.charAt(+d)}):x}
+function nm(p){return D[lang].names[p]}
+function sg(s){return '<span class="'+((s==1||s==2)?'rs':'')+'">'+SU[s]+'</span>'}
+
+function rnd(k){var a=new Uint32Array(1);(window.crypto||window.msCrypto).getRandomValues(a);return a[0]%k}
+function deal(){
+  var d=[],s,r,i,j,t;
+  for(s=0;s<4;s++)for(r=2;r<=14;r++)d.push({s:s,r:r});
+  for(i=51;i>0;i--){j=rnd(i+1);t=d[i];d[i]=d[j];d[j]=t}
+  H={hands:[0,1,2,3].map(function(p){return d.slice(p*13,p*13+13)}),trump:null,trick:[],led:null,turn:G.hakem,tricks:[0,0],phase:'trump',view:[],played:{},void:[{},{},{},{}],last:null};
+}
+function card(c,cls){return '<div class="c '+((c.s==1||c.s==2)?'r ':'')+(cls||'')+'"><b>'+RK[c.r]+'</b><i>'+SU[c.s]+'</i></div>'}
+function beats(a,b){return a.s==b.s?a.r>b.r:(a.s==H.trump&&b.s!=H.trump)}
+function best(){return H.trick.reduce(function(w,t){return beats(t.c,w.c)?t:w})}
+function legal(p){
+  var h=H.hands[p];if(!H.trick.length)return h;
+  var f=h.filter(function(c){return c.s==H.led});return f.length?f:h;
+}
+function msg(k,a){curMsg=[k].concat(a||[]);$('.msg').textContent=T.apply(null,curMsg)}
+
+function render(){
+  var hd=H.phase=='trump'?H.hands[0].slice(0,5):H.hands[0];
+  H.view=hd.slice().sort(function(a,b){return a.s-b.s||b.r-a.r});
+  var my=H.phase=='play'&&H.turn==0&&H.trick.length<4,ok=my?legal(0):[];
+  $('.me').innerHTML=H.view.map(function(c,i){
+    return card(c,(ok.indexOf(c)>-1?'ok':my?'no':'')).replace('<div','<div data-i="'+i+'"')}).join('');
+  var cw=H.trick.length?best().p:-1,ld=H.trick.length?H.trick[0].p:-1;
+  for(var p=0;p<4;p++){
+    var pl=H.trick.filter(function(t){return t.p==p})[0];
+    var lb='<div class="lb">'+nm(p)+(G.hakem==p?' ★':'')+(ld==p?' · '+T('leader'):'')+' · '+n(H.hands[p].length)+'</div>';
+    var cd=pl?card(pl.c,p==cw?'win':''):'<div class="ph"></div>';
+    $('.s'+POS[p]).innerHTML=p?lb+cd:cd+lb;
+  }
+  $('.mid').innerHTML=T('trump')+': '+(H.trump===null?'?':'<b>'+sg(H.trump)+' '+D[lang].suits[H.trump]+'</b>')
+    +'<br>'+T('tricks')+': '+n(H.tricks[0])+' – '+n(H.tricks[1])
+    +(H.trick.length?'<br>'+T('led')+': <b>'+sg(H.led)+' '+D[lang].suits[H.led]+'</b>':'');
+  $('.score').textContent=T('score',G.score[0],G.score[1]);
+  var L=H.last;
+  $('.last').innerHTML=L?T('lastTrick')+': '+L.cards.map(function(t){return nm(t.p)+' '+sg(t.c.s)+RK[t.c.r]}).join(' · ')+' — '+T('took',L.w)+' ('+T('led')+' '+sg(L.led)+')':'';
+}
+function renderBtn(){
+  var b=$('.btn');
+  if(btn=='trump')b.innerHTML=[0,1,2,3].map(function(s){return '<button data-s="'+s+'">'+sg(s)+' '+D[lang].suits[s]+'</button>'}).join('');
+  else if(btn=='go')b.innerHTML='<button class="go">'+T(G.over?'newgame':'next')+'</button>';
+  else b.innerHTML='';
+}
+function applyLang(){
+  root.className=lang;root.dir=lang=='fa'?'rtl':'ltr';
+  $('.help').textContent=T('help');$('.lang').textContent=T('lang');
+  if(H){render();renderBtn();if(curMsg)$('.msg').textContent=T.apply(null,curMsg)}
+}
+
+function start(){
+  if(G.over){G.score=[0,0];G.hakem=rnd(4);G.over=false}
+  deal();btn='';renderBtn();render();
+  if(G.hakem==0){
+    msg('hakemYou');btn='trump';renderBtn();
+  }else{
+    msg('hakemOther',[G.hakem]);
+    setTimeout(function(){
+      var sc=[0,0,0,0],c5=[0,0,0,0];H.hands[G.hakem].slice(0,5).forEach(function(c){c5[c.s]++;sc[c.s]+=c.r+(c.r>=13?6:0)});
+      sc=sc.map(function(v,i){return v+c5[i]*c5[i]*6});
+      setTrump(sc.indexOf(Math.max.apply(null,sc)));
+    },1000);
+  }
+}
+function setTrump(s){H.trump=s;H.phase='play';H.turn=G.hakem;btn='';renderBtn();render();next()}
+
+function next(){
+  render();
+  if(H.turn==0){msg('turn');return}
+  msg('think',[H.turn]);
+  setTimeout(function(){var p=H.turn;play(p,aiPick(p))},700);
+}
+function play(p,c){
+  var h=H.hands[p];h.splice(h.indexOf(c),1);
+  if(!H.trick.length)H.led=c.s;else if(c.s!=H.led)H.void[p][H.led]=true;
+  H.played[c.s*15+c.r]=1;
+  H.trick.push({p:p,c:c});H.turn=(p+1)%4;render();
+  if(H.trick.length==4){msg('took',[best().p]);setTimeout(resolve,1300)}else next();
+}
+function resolve(){
+  var w=best();H.last={cards:H.trick.slice(),led:H.led,w:w.p};
+  H.tricks[w.p%2]++;H.trick=[];H.turn=w.p;
+  if(H.tricks[0]==7||H.tricks[1]==7){endHand();return}
+  next();
+}
+function unseen(p,s){
+  var out=[],r;
+  for(r=2;r<=14;r++){
+    if(H.played[s*15+r])continue;
+    if(H.hands[p].some(function(c){return c.s==s&&c.r==r}))continue;
+    out.push(r);
+  }
+  return out;
+}
+function master(p,c){return unseen(p,c.s).every(function(r){return r<c.r})}
+function oppVoid(p,s){return H.void[(p+1)%4][s]||H.void[(p+3)%4][s]}
+function danger(p,c,after,led){
+  var t=H.trump,k,o;
+  for(k=1;k<=after;k++){
+    o=(p+k)%4;if(o%2==p%2)continue;
+    if(c.s==t){
+      if(!H.void[o][t]&&unseen(p,t).some(function(r){return r>c.r}))return true;
+    }else{
+      if(c.s==led&&!H.void[o][c.s]&&unseen(p,c.s).some(function(r){return r>c.r}))return true;
+      if(H.void[o][c.s]&&!H.void[o][t]&&unseen(p,t).length)return true;
+    }
+  }
+  return false;
+}
+function aiPick(p){
+  var t=H.trump,hand=H.hands[p],part=(p+2)%4;
+  var L=legal(p).slice().sort(function(a,b){return a.r-b.r});
+  var len=function(s){return hand.filter(function(c){return c.s==s}).length};
+  var cost=function(c){return (c.s==t?100:0)+c.r};
+  var low=function(){
+    var d=L.filter(function(c){return c.s!=t});
+    if(!d.length)return L[0];
+    var nm=d.filter(function(c){return !master(p,c)});
+    if(nm.length)d=nm;
+    d.sort(function(a,b){return len(a.s)-len(b.s)||a.r-b.r});
+    return d[0];
+  };
+  if(!H.trick.length){
+    var tr=L.filter(function(c){return c.s==t});
+    if(tr.length&&master(p,tr[tr.length-1])&&unseen(p,t).length)return tr[tr.length-1];
+    if(G.hakem%2==p%2&&tr.length>=4&&unseen(p,t).length>=2)return tr[tr.length-1];
+    var cash=L.filter(function(c){return c.s!=t&&master(p,c)&&!danger(p,c,3,c.s)});
+    if(cash.length)return cash[cash.length-1];
+    var pv=L.filter(function(c){return c.s!=t&&H.void[part][c.s]&&!H.void[part][t]&&unseen(p,t).length&&!oppVoid(p,c.s)});
+    if(pv.length)return pv[0];
+    var nt=L.filter(function(c){return c.s!=t});
+    if(!nt.length)return L[0];
+    var ok=nt.filter(function(c){return !oppVoid(p,c.s)});
+    if(ok.length)nt=ok;
+    nt.sort(function(a,b){return a.r-b.r});
+    var hi=nt[nt.length-1];
+    return hi.r>=13?hi:nt[0];
+  }
+  var w=best(),after=3-H.trick.length,led=H.led;
+  var win=L.filter(function(c){return beats(c,w.c)}).sort(function(a,b){return cost(a)-cost(b)});
+  if(w.p%2==p%2){
+    if(after&&danger(p,w.c,after,led)){
+      var sw=win.filter(function(c){return !danger(p,c,after,led)});
+      if(sw.length)return sw[0];
+    }
+    return low();
+  }
+  if(!win.length)return low();
+  if(!after)return win[0];
+  var safe=win.filter(function(c){return !danger(p,c,after,led)});
+  return safe.length?safe[0]:win[0];
+}
+function endHand(){
+  var team=H.tricks[0]==7?0:1,pts=H.tricks[1-team]==0?2:1;
+  G.score[team]+=pts;
+  if(team!=G.hakem%2)G.hakem=(G.hakem+1)%4;
+  G.over=G.score[0]>=7||G.score[1]>=7;
+  render();
+  msg('hand',[team,H.tricks[team],H.tricks[1-team],pts==2,G.over]);
+  btn='go';renderBtn();
+}
+
+root.addEventListener('click',function(e){
+  var c=e.target.closest('.c.ok'),b=e.target.closest('button'),h=e.target.closest('.help'),l=e.target.closest('.lang');
+  if(h){e.preventDefault();alert(T('rules'));return}
+  if(l){e.preventDefault();lang=lang=='fa'?'en':'fa';try{localStorage.setItem('hokm-lang',lang)}catch(x){}applyLang();return}
+  if(c&&H.phase=='play'&&H.turn==0&&H.trick.length<4){play(0,H.view[+c.getAttribute('data-i')]);return}
+  if(b&&b.hasAttribute('data-s'))setTrump(+b.getAttribute('data-s'));
+  else if(b&&b.className=='go')start();
+});
+applyLang();
+start();
+})();
+</script>
