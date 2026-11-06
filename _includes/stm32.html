@@ -1,0 +1,255 @@
+<div id="stm32">
+<style>
+#stm32{--fg:#1a1a1a;--mut:#6b6b6b;--line:#c9c9c9;--card:#f4f4f2;--bg:#fff;--io:#e6eef7;--pw:#f6cdc9;--rs:#dccdf0;--bt:#f3e6ae;--nc:#e6e6e6;--an:#cdebd5;--tm:#f7dcbc;--cm:#cfe0f6;--sy:#e3d6f3;--ot:#ececec;--hl:#ffe35c;container-type:inline-size;margin:1.2em 0;padding:10px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+#stm32 *{box-sizing:border-box}
+#stm32 .ctl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+#stm32 select,#stm32 input{font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:4px 6px;max-width:100%;margin:0}
+#stm32 input[type=search]{min-width:11em}
+#stm32 .info{font-size:.88em;color:var(--mut);margin:4px 0}
+#stm32 .legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:.78em;margin:6px 0 10px;color:var(--mut)}
+#stm32 .legend span:before{content:"";display:inline-block;width:.9em;height:.9em;border:1px solid var(--line);margin-right:4px;vertical-align:-1px;background:var(--c)}
+#stm32 .sum,#stm32 .detail{border:1px solid var(--line);border-radius:5px;background:var(--card);padding:6px 10px;margin:8px 0;font-size:.88em}
+#stm32 .sum:empty,#stm32 .detail:empty{display:none}
+#stm32 .sum div div{padding:1px 0}
+#stm32 .tag{border:1px solid var(--line);border-radius:3px;padding:0 5px;font-size:.85em;margin-left:4px}
+#stm32 .board{display:grid;grid-template-columns:minmax(0,1fr) minmax(200px,330px) minmax(0,1fr);gap:12px;align-items:start}
+#stm32 .board.flat{display:block}
+#stm32 .chipwrap{position:sticky;top:8px}
+#stm32 .flat .chipwrap{position:static;max-width:760px;margin:0 auto 12px}
+#stm32 .chipwrap svg{width:100%;height:auto;display:block;margin:0}
+#stm32 .cols{columns:3 280px;column-gap:10px}
+#stm32 .cols .pin{break-inside:avoid}
+#stm32 .t0{--c:var(--io)}#stm32 .t1{--c:var(--pw)}#stm32 .t2{--c:var(--rs)}#stm32 .t3{--c:var(--bt)}#stm32 .t4{--c:var(--nc)}
+#stm32 .pin{display:flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:4px;padding:3px 6px;margin:0 0 4px;background:var(--c);color:var(--fg);cursor:pointer;font-size:12.5px;min-height:28px}
+#stm32 .r .pin{flex-direction:row-reverse;text-align:right}
+#stm32 .num{min-width:2.4em;text-align:center;font-weight:700;border-right:1px solid var(--line);padding-right:5px}
+#stm32 .r .num{border-right:0;border-left:1px solid var(--line);padding:0 0 0 5px}
+#stm32 .nm{font-weight:600;min-width:5.2em;max-width:9.5em;overflow-wrap:anywhere}
+#stm32 .fn{display:flex;flex-wrap:wrap;gap:3px;flex:1;min-width:0}
+#stm32 .r .fn{justify-content:flex-end}
+#stm32 .s{font-size:11px;padding:0 4px;border-radius:3px;border:1px solid var(--line);background:var(--ot);white-space:nowrap}
+#stm32 .s i{font-style:normal;opacity:.65;font-size:9px;margin-left:3px}
+#stm32 .c-an{background:var(--an)}#stm32 .c-tm{background:var(--tm)}#stm32 .c-cm{background:var(--cm)}#stm32 .c-sy{background:var(--sy)}
+#stm32 .s.m{outline:2px solid var(--fg);font-weight:700}
+#stm32 .dim{opacity:.22}
+#stm32 .hl{outline:2px solid var(--hl)}
+#stm32 .sel{outline:2px solid var(--fg)}
+#stm32 .pin.hl,#stm32 .pin.sel{outline-offset:-1px}
+#stm32 svg .body{fill:var(--card);stroke:var(--fg);stroke-width:1.4}
+#stm32 svg .tick,#stm32 svg .cell{fill:var(--c);stroke:var(--fg);stroke-width:.7;cursor:pointer}
+#stm32 svg .tick.hl,#stm32 svg .cell.hl{fill:var(--hl);outline:none}
+#stm32 svg .tick.sel,#stm32 svg .cell.sel{fill:var(--hl);stroke-width:2;outline:none}
+#stm32 svg text{fill:var(--fg);font-family:inherit;pointer-events:none}
+#stm32 svg .lab{font-size:9px;fill:var(--mut)}
+#stm32 .foot{margin-top:14px;font-size:.78em;color:var(--mut)}
+@media(max-width:860px){#stm32 .board{grid-template-columns:1fr 1fr}#stm32 .chipwrap{grid-column:1/-1;order:-1;position:static;max-width:420px;margin:0 auto;width:100%}}
+@media(max-width:560px){#stm32 .board{grid-template-columns:1fr}}
+@container (max-width:860px){#stm32 .board{grid-template-columns:1fr 1fr}#stm32 .chipwrap{grid-column:1/-1;order:-1;position:static;max-width:420px;margin:0 auto;width:100%}}
+@container (max-width:560px){#stm32 .board{grid-template-columns:1fr}}
+@container (min-width:861px){#stm32 .board{grid-template-columns:minmax(0,1fr) minmax(200px,330px) minmax(0,1fr)}#stm32 .chipwrap{grid-column:auto;order:0;position:sticky;max-width:none;margin:0}}
+</style>
+<div class="ctl">
+<select class="fam" aria-label="family"></select>
+<select class="part" aria-label="part"></select>
+<input class="find" list="stm32-parts" placeholder="find a part, e.g. f103c8" aria-label="find a part">
+<datalist id="stm32-parts" class="parts"></datalist>
+<input class="q" type="search" list="stm32-toks" placeholder="highlight: spi1, adc, pa5…" aria-label="highlight">
+<datalist id="stm32-toks" class="toks"></datalist>
+</div>
+<div class="info">loading…</div>
+<div class="legend">
+<span style="--c:var(--io)">gpio</span><span style="--c:var(--pw)">power</span><span style="--c:var(--rs)">reset</span><span style="--c:var(--bt)">boot</span><span style="--c:var(--nc)">not connected</span>
+<span>|</span>
+<span style="--c:var(--an)">analog</span><span style="--c:var(--tm)">timer</span><span style="--c:var(--cm)">communication</span><span style="--c:var(--sy)">system</span><span style="--c:var(--ot)">other</span>
+<span>small number on a function = alternate-function number (AF)</span>
+</div>
+<div class="sum"></div>
+<div class="detail"></div>
+<div class="board"></div>
+<div class="foot">click a pin to see all its alternate functions, click a function to highlight every pin that can do that peripheral. data: stmicroelectronics' open pin data (stm32_open_pin_data, bsd-3-clause, © stmicroelectronics), the same data cubemx uses. it can miss functions the datasheet lists, so double-check the datasheet before wiring or ordering boards. covers the stm32 microcontrollers, not the mp1/mp2 microprocessors.</div>
+<script>
+(function(){
+var BASE='/stm32-data/',IDX=null,CACHE={},CUR=null,Q='',TOK=new Set();
+var TY=['gpio','power','reset','boot','not connected'];
+var root=document.getElementById('stm32');
+var $=function(s){return root.querySelector(s)};
+var board=$('.board');
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function tok(n){return n.split('_')[0]}
+function nat(a,b){return String(a).localeCompare(String(b),undefined,{numeric:true})}
+function cat(n){
+var t=tok(n);
+if(/^(ADC|DAC|COMP|OPAMP|VREF|VDDA|SDADC|PGA)/.test(t))return 'an';
+if(/^(LP)?TIM\d*$|^HRTIM|^IRTIM/.test(t))return 'tm';
+if(/^(SYS|RCC|RTC|DEBUG|PWR|CRS|MCO|EVENTOUT|WKUP|TAMP|BOOT|VBAT|NRST)/.test(t))return 'sy';
+if(/(UART|USART|SPI|I2S|I2C|I3C|SAI|CAN|USB|OTG|ETH|SDMMC|SDIO|XSPI|FMC|FSMC|DCMI|DFSDM|LTDC|CEC|SWPMI|UCPD|MDF|ADF|SPDIFRX|DSIHOST|LCD|PSSI|JPEG)/.test(t))return 'cm';
+return 'ot';
+}
+/* ---------- data ---------- */
+function getFam(i){
+var id=IDX.fams[i][0];
+if(CACHE[id])return Promise.resolve(CACHE[id]);
+return fetch(BASE+id+'.json').then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(j){return CACHE[id]=j});
+}
+function decode(F,o){
+return o.p.map(function(a){
+var name=F.s[a[1]];
+return {pos:a[0],name:name,base:name.split('-')[0],ty:a[2],sigs:a[3].map(function(c){return {n:F.s[Math.floor(c/17)],af:c%17-1}})};
+});
+}
+/* ---------- layout ---------- */
+function layout(pkg,pins){
+var m=pkg.match(/(\d+)/),N=m?+m[1]:0;
+var num=pins.every(function(p){return /^\d+$/.test(p.pos)});
+if(/QFP|QFN/.test(pkg)&&num&&N%4==0)return {k:'quad',N:N};
+if(/SO|SSOP/.test(pkg)&&!/LCSP|BGA/.test(pkg)&&num&&N%2==0)return {k:'dual',N:N};
+if(pins.every(function(p){return /^[A-Z]{1,2}\d+$/.test(p.pos)}))return {k:'grid'};
+return {k:'list'};
+}
+function row(p){
+return '<div class="pin t'+p.ty+'" data-p="'+esc(p.pos)+'"><span class="num">'+esc(p.pos)+'</span><span class="nm">'+esc(p.name)+'</span><span class="fn">'+
+p.sigs.map(function(s){return '<span class="s c-'+cat(s.n)+'" data-sg="'+esc(s.n)+'"'+(s.af>=0?' title="AF'+s.af+'"':'')+'>'+esc(s.n)+(s.af>=0?'<i>'+s.af+'</i>':'')+'</span>'}).join('')+'</span></div>';
+}
+function tickRect(p,x,y,w,h){
+return '<rect class="tick t'+p.ty+'" data-p="'+esc(p.pos)+'" x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+w.toFixed(1)+'" height="'+h.toFixed(1)+'"><title>'+esc(p.pos+' · '+p.name)+'</title></rect>';
+}
+function svgQuad(mc,main,extras,N){
+var n=N/4,L=24,pitch=Math.min(16,(400-2*L-30)/n),B=n*pitch+30,x0=(400-B)/2,y0=x0,g=pitch*.15,s='';
+main.forEach(function(p){
+var i=+p.pos-1,sd=Math.floor(i/n),k=i%n;
+if(sd==0)s+=tickRect(p,x0-L,y0+15+k*pitch+g,L,pitch*.7);
+else if(sd==1)s+=tickRect(p,x0+15+k*pitch+g,y0+B,pitch*.7,L);
+else if(sd==2)s+=tickRect(p,x0+B,y0+B-15-(k+1)*pitch+g,L,pitch*.7);
+else s+=tickRect(p,x0+B-15-(k+1)*pitch+g,y0-L,pitch*.7,L);
+});
+var pads='';
+extras.forEach(function(p,i){pads+=tickRect(p,x0+B/2-extras.length*28+i*56+3,y0+B/2+10,50,50)});
+return '<svg viewBox="0 0 400 400"><rect class="body" x="'+x0+'" y="'+y0+'" width="'+B+'" height="'+B+'" rx="6"/><circle cx="'+(x0+12)+'" cy="'+(y0+12)+'" r="4" fill="currentColor"/>'+
+'<text x="200" y="'+(y0+B/2-8)+'" text-anchor="middle" font-size="14" font-weight="600">'+esc(mc[0])+'</text><text x="200" y="'+(y0+B/2+10)+'" text-anchor="middle" font-size="11">'+esc(mc[1])+'</text>'+s+pads+'</svg>';
+}
+function svgDual(mc,main,extras,N){
+var n=N/2,L=26,pitch=Math.min(18,380/n),H=n*pitch+20,g=pitch*.15,s='',x0=120,W=160;
+main.forEach(function(p){
+var i=+p.pos-1,k=i%n;
+if(i<n)s+=tickRect(p,x0-L,30+10+k*pitch+g,L,pitch*.7);
+else s+=tickRect(p,x0+W,30+H-10-(k+1)*pitch+g,L,pitch*.7);
+});
+extras.forEach(function(p,i){s+=tickRect(p,x0+W/2-25,30+H/2+30+i*30,50,24)});
+return '<svg viewBox="0 0 400 '+(H+60)+'"><rect class="body" x="'+x0+'" y="30" width="'+W+'" height="'+H+'" rx="6"/><circle cx="'+(x0+14)+'" cy="44" r="4" fill="currentColor"/>'+
+'<text x="200" y="'+(30+H/2-6)+'" text-anchor="middle" font-size="13" font-weight="600">'+esc(mc[0])+'</text><text x="200" y="'+(30+H/2+10)+'" text-anchor="middle" font-size="11">'+esc(mc[1])+'</text>'+s+'</svg>';
+}
+function svgGrid(mc,pins){
+var rows={},cols={};
+pins.forEach(function(p){var m=p.pos.match(/^([A-Z]+)(\d+)$/);p._r=m[1];p._c=+m[2];rows[m[1]]=1;cols[m[2]]=1});
+var R=Object.keys(rows).sort(function(a,b){return a.length-b.length||(a<b?-1:1)}),C=Object.keys(cols).map(Number).sort(function(a,b){return a-b});
+var cw=40,ch=28,ox=26,oy=22,W=ox+C.length*cw+6,H=oy+R.length*ch+6,s='';
+R.forEach(function(r,i){s+='<text class="lab" x="'+(ox-6)+'" y="'+(oy+i*ch+ch/2+3)+'" text-anchor="end">'+r+'</text>'});
+C.forEach(function(c,i){s+='<text class="lab" x="'+(ox+i*cw+cw/2)+'" y="'+(oy-8)+'" text-anchor="middle">'+c+'</text>'});
+pins.forEach(function(p){
+var x=ox+C.indexOf(p._c)*cw,y=oy+R.indexOf(p._r)*ch,nm=p.base.length>6?p.base.slice(0,6):p.base;
+s+='<g><rect class="cell t'+p.ty+'" data-p="'+esc(p.pos)+'" x="'+(x+1)+'" y="'+(y+1)+'" width="'+(cw-2)+'" height="'+(ch-2)+'" rx="4"><title>'+esc(p.pos+' · '+p.name)+'</title></rect><text x="'+(x+cw/2)+'" y="'+(y+ch/2+3)+'" text-anchor="middle" font-size="9">'+esc(nm)+'</text></g>';
+});
+return '<svg viewBox="0 0 '+W+' '+H+'">'+s+'</svg><div style="text-align:center;font-size:.8em;color:var(--mut)">'+esc(mc[0])+' · '+esc(mc[1])+' · ball side up, A1 top-left</div>';
+}
+/* ---------- render ---------- */
+function render(){
+var mc=CUR.mcu,pins=CUR.pins,lay=layout(mc[1],pins),h;
+CUR.byPos={};pins.forEach(function(p){CUR.byPos[p.pos]=p});
+if(lay.k=='quad'||lay.k=='dual'){
+var N=lay.N,main=pins.filter(function(p){return +p.pos<=N}).sort(function(a,b){return a.pos-b.pos}),
+extras=pins.filter(function(p){return +p.pos>N}).sort(function(a,b){return a.pos-b.pos}),half=N/2;
+var left=main.filter(function(p){return +p.pos<=half}),right=main.filter(function(p){return +p.pos>half}).reverse();
+h='<div class="col l">'+left.map(row).join('')+'</div><div class="chipwrap">'+(lay.k=='quad'?svgQuad(mc,main,extras,N):svgDual(mc,main,extras,N))+'</div><div class="col r">'+right.map(row).join('')+extras.map(row).join('')+'</div>';
+board.className='board';
+}else{
+var sorted=pins.slice().sort(function(a,b){return nat(a.pos,b.pos)});
+h='<div class="chipwrap">'+(lay.k=='grid'?svgGrid(mc,pins):'')+'</div><div class="cols">'+sorted.map(row).join('')+'</div>';
+board.className='board flat';
+}
+board.innerHTML=h;
+TOK=new Set();var tl={};
+pins.forEach(function(p){p.sigs.forEach(function(s){var t=tok(s.n);TOK.add(t.toLowerCase());tl[t]=1})});
+$('.toks').innerHTML=Object.keys(tl).sort(nat).map(function(t){return '<option value="'+esc(t)+'">'}).join('');
+var same=IDX.mcus.filter(function(m){return m[7]==mc[7]&&m[8]==mc[8]&&m[0]!=mc[0]}).map(function(m){return m[0]});
+$('.info').textContent=[mc[1],'Cortex-'+IDX.cores[mc[5]],mc[4]?mc[4]+' MHz':'',mc[2]?mc[2]+' KB flash':'',mc[3]?mc[3]+' KB RAM':'',mc[6]].filter(Boolean).join(' · ')+
+(same.length?'  —  same pinout: '+same.slice(0,10).join(', ')+(same.length>10?' +'+(same.length-10)+' more':''):'');
+$('.detail').innerHTML='';
+applyFilter();
+}
+/* ---------- interaction ---------- */
+function sigMatch(n){return TOK.has(Q)?tok(n).toLowerCase()==Q:n.toLowerCase().indexOf(Q)>=0}
+function pinMatch(p){return p.name.toLowerCase().indexOf(Q)>=0||p.pos.toLowerCase()==Q||p.sigs.some(function(s){return sigMatch(s.n)})}
+function applyFilter(){
+if(!CUR)return;
+board.querySelectorAll('[data-p]').forEach(function(el){el.classList.toggle('dim',!!Q&&!pinMatch(CUR.byPos[el.dataset.p]))});
+board.querySelectorAll('.s').forEach(function(el){el.classList.toggle('m',!!Q&&sigMatch(el.dataset.sg))});
+var sum=$('.sum');
+if(!Q){sum.innerHTML='';return}
+var m={},hits=CUR.pins.filter(pinMatch).length;
+CUR.pins.forEach(function(p){p.sigs.forEach(function(s){if(sigMatch(s.n))(m[s.n]=m[s.n]||[]).push(p.base+(s.af>=0?' (AF'+s.af+')':''))})});
+var ks=Object.keys(m).sort(nat);
+sum.innerHTML='<b>'+hits+' pin'+(hits==1?'':'s')+'</b> match “'+esc(Q)+'”'+(ks.length&&ks.length<=60?'<div>'+ks.map(function(k){return '<div><b>'+esc(k)+'</b> → '+m[k].map(esc).join(' · ')+'</div>'}).join('')+'</div>':'');
+}
+function setQ(v){Q=v.trim().toLowerCase();$('.q').value=Q?v.trim():'';applyFilter()}
+function setHl(pos){
+board.querySelectorAll('.hl').forEach(function(e){e.classList.remove('hl')});
+if(pos!=null)board.querySelectorAll('[data-p="'+pos+'"]').forEach(function(e){e.classList.add('hl')});
+}
+function selectPin(pos){
+board.querySelectorAll('.sel').forEach(function(e){e.classList.remove('sel')});
+board.querySelectorAll('[data-p="'+pos+'"]').forEach(function(e){e.classList.add('sel')});
+var p=CUR.byPos[pos];if(!p)return;
+var by={},other=[];
+p.sigs.forEach(function(s){if(s.af>=0)(by[s.af]=by[s.af]||[]).push(s.n);else other.push(s.n)});
+var h='<b>pin '+esc(p.pos)+' · '+esc(p.name)+'</b><span class="tag">'+TY[p.ty]+'</span>';
+var ks=Object.keys(by).map(Number).sort(function(a,b){return a-b});
+if(ks.length)h+='<div>'+ks.map(function(k){return '<div><b>AF'+k+'</b> '+by[k].map(esc).join(' · ')+'</div>'}).join('')+'</div>';
+if(other.length)h+='<div><b>also</b> '+other.map(esc).join(' · ')+'</div>';
+if(p.ty==0&&/^P[A-Z]\d+/.test(p.name))h+='<div style="color:var(--mut)">plain gpio: input / output / analog / external interrupt</div>';
+$('.detail').innerHTML=h;
+}
+board.addEventListener('mouseover',function(e){var t=e.target.closest('[data-p]');setHl(t?t.dataset.p:null)});
+board.addEventListener('mouseleave',function(){setHl(null)});
+board.addEventListener('click',function(e){
+var t=e.target.closest('[data-p]'),sg=e.target.closest('[data-sg]');
+if(sg){var v=tok(sg.dataset.sg);setQ(Q==v.toLowerCase()?'':v)}
+if(t)selectPin(t.dataset.p);
+});
+$('.q').addEventListener('input',function(){setQ(this.value)});
+/* ---------- part selection ---------- */
+function fillParts(fi,sel){
+var list=IDX.mcus.filter(function(m){return m[7]==fi}).sort(function(a,b){return nat(a[0],b[0])});
+$('.part').innerHTML=list.map(function(m){return '<option value="'+esc(m[0])+'">'+esc(m[0]+' · '+m[1]+(m[2]?' · '+m[2]+'K flash':''))+'</option>'}).join('');
+$('.part').value=sel||list[0][0];
+}
+function open(ref){
+var mc=IDX.mcus.filter(function(m){return m[0].toLowerCase()==String(ref).toLowerCase()})[0];
+if(!mc)return Promise.resolve();
+return getFam(mc[7]).then(function(F){
+CUR={mcu:mc,pins:decode(F,F.o[mc[8]])};
+$('.fam').value=mc[7];fillParts(mc[7],mc[0]);
+try{history.replaceState(null,'','#'+encodeURIComponent(mc[0]))}catch(e){}
+render();
+}).catch(function(){$('.info').textContent="couldn't load the data for that family (is the stm32-data folder in the root of the site?)."});
+}
+$('.fam').addEventListener('change',function(){fillParts(+this.value);open($('.part').value)});
+$('.part').addEventListener('change',function(){open(this.value)});
+$('.find').addEventListener('change',function(){
+var v=this.value.trim().toLowerCase().replace(/^stm32/,'');if(!v)return;
+var c=IDX.mcus.filter(function(m){return m[0].toLowerCase().replace(/^stm32/,'')==v});
+if(!c.length)c=IDX.mcus.filter(function(m){return m[0].toLowerCase().replace(/^stm32/,'').indexOf(v)==0});
+if(!c.length)c=IDX.mcus.filter(function(m){return m[0].toLowerCase().indexOf(v)>=0});
+if(c.length){open(c[0][0]);this.value=''}else this.value='';
+});
+window.addEventListener('hashchange',function(){var h=decodeURIComponent(location.hash.slice(1));if(h&&IDX&&(!CUR||CUR.mcu[0].toLowerCase()!=h.toLowerCase()))open(h)});
+fetch(BASE+'index.json').then(function(r){if(!r.ok)throw new Error(r.status);return r.json()}).then(function(j){
+IDX=j;
+$('.fam').innerHTML=IDX.fams.map(function(f,i){return '<option value="'+i+'">'+esc(f[1])+' ('+f[2]+')</option>'}).join('');
+$('.parts').innerHTML=IDX.mcus.map(function(m){return '<option value="'+esc(m[0])+'">'}).join('');
+var h=decodeURIComponent(location.hash.slice(1)).toLowerCase();
+var ok=IDX.mcus.some(function(m){return m[0].toLowerCase()==h});
+open(ok?h:'STM32F030R8Tx').then(function(){if(!CUR)open(IDX.mcus[0][0])});
+}).catch(function(){$('.info').textContent="couldn't load /stm32-data/index.json — check that the stm32-data folder is in the root of the site."});
+})();
+</script>
+</div>
