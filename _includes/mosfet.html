@@ -1,0 +1,111 @@
+<div id="mosx">
+<style>
+#mosx{--fg:#1a1a1a;--mut:#6b6b6b;--line:#c9c9c9;--card:#f4f4f2;--bg:#fff;--tri:#d4e3f7;--sat:#d3ecd9;--cut:#ececec;--acc:#c0392b;container-type:inline-size;margin:1.2em 0;padding:10px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+#mosx *{box-sizing:border-box}
+#mosx svg{width:100%;height:auto;display:block;margin:0}
+#mosx .read{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+#mosx .read span{border:1px solid var(--line);border-radius:4px;padding:2px 8px;background:var(--card);font-size:.9em}
+#mosx .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px 14px;margin:8px 0}
+#mosx label{display:block;font-size:.88em}
+#mosx input[type=range]{width:100%;margin:2px 0 0;padding:0}
+#mosx details{margin:8px 0;font-size:.9em}
+#mosx summary{cursor:pointer;color:var(--mut)}
+#mosx select{font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:3px 6px}
+#mosx .st{border-left:3px solid var(--line);padding:2px 0 2px 10px;margin:10px 0;font-size:.92em}
+#mosx .eq{font-family:Georgia,"Times New Roman",serif;font-size:1.02em;background:var(--card);padding:4px 8px;border-radius:4px;margin:4px 0;overflow-x:auto}
+#mosx .num{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86em;color:#124b8c;margin:2px 0;overflow-x:auto}
+#mosx .note{font-size:.78em;color:var(--mut);margin-top:10px}
+#mosx dt{font-weight:600;margin-top:4px}#mosx dd{margin:0 0 0 14px}
+#mosx .ax{stroke:var(--fg);stroke-width:1.2}#mosx .gr{stroke:var(--line);stroke-width:.6}
+#mosx .cv{fill:none;stroke:#9a9a9a;stroke-width:1.1}#mosx .cs{fill:none;stroke:var(--acc);stroke-width:2.6}
+#mosx .bd{fill:none;stroke:var(--fg);stroke-width:1.1;stroke-dasharray:5 4}
+#mosx svg text{fill:var(--fg);font-family:inherit;font-size:11px}
+#mosx svg .m{fill:var(--mut);font-size:10px}
+</style>
+<div class="plot"></div>
+<div class="read"></div>
+<div class="row sl"></div>
+<details><summary>more knobs: V<sub>th</sub>, k′, λ</summary><div class="row adv"></div></details>
+<div>show the math: <select class="lv"><option value="1">words only</option><option value="2" selected>words + equations</option><option value="3">words + equations + your numbers</option></select></div>
+<div class="steps"></div>
+<details><summary>what do these symbols mean?</summary><dl>
+<dt>V<sub>GS</sub>, V<sub>DS</sub></dt><dd>voltage from gate to source, and from drain to source. the source is the terminal the current leaves from (ground for an nmos here).</dd>
+<dt>V<sub>th</sub></dt><dd>threshold voltage: the V<sub>GS</sub> at which a conducting channel of electrons starts to form under the gate.</dd>
+<dt>V<sub>ov</sub></dt><dd>overdrive voltage, V<sub>GS</sub> − V<sub>th</sub>: how far the gate is above the threshold.</dd>
+<dt>W, L</dt><dd>channel width and length. the current flows along L through a strip W wide, so a wide, short transistor passes more current.</dd>
+<dt>k′ = µ<sub>n</sub>C<sub>ox</sub></dt><dd>process constant: electron mobility µ<sub>n</sub> (how easily electrons move) times oxide capacitance per area C<sub>ox</sub> (how strongly the gate controls the channel).</dd>
+<dt>λ</dt><dd>channel-length modulation: a small correction because a bigger V<sub>DS</sub> shortens the effective channel a little.</dd>
+<dt>g<sub>m</sub>, r<sub>o</sub></dt><dd>small-signal quantities: g<sub>m</sub> = how much drain current changes per volt on the gate, r<sub>o</sub> = how much V<sub>DS</sub> is needed to change the current by one amp.</dd>
+</dl></details>
+<div class="note">this is the simple long-channel “square-law” model, with no subthreshold leakage. it is great for intuition and first hand-calculations; a real 180 nm device has velocity saturation and other effects, so check against simulation.</div>
+<script>
+(function(){
+var root=document.getElementById('mosx'),$=function(s){return root.querySelector(s)};
+var SL=[['vgs','V<sub>GS</sub>',0,1.8,0.01,1.0,'V'],['vds','V<sub>DS</sub>',0,1.8,0.01,1.0,'V'],['w','W',0.5,50,0.5,10,'µm'],['l','L',0.18,2,0.01,0.5,'µm']];
+var AD=[['vth','V<sub>th</sub>',0.2,0.9,0.01,0.5,'V'],['k','k′',50,400,5,200,'µA/V²'],['lam','λ',0,0.4,0.01,0.1,'1/V']];
+var P={};
+function mk(a){return '<label>'+a[1]+' = <b data-b="'+a[0]+'"></b> '+a[6]+'<input type="range" data-s="'+a[0]+'" min="'+a[2]+'" max="'+a[3]+'" step="'+a[4]+'" value="'+a[5]+'"></label>'}
+$('.sl').innerHTML=SL.map(mk).join('');$('.adv').innerHTML=AD.map(mk).join('');
+function id(vg,vd){var vov=vg-P.vth;if(vov<=0||vd<0)return 0;var kw=P.k*1e-6*P.w/P.l,m=1+P.lam*vd;return vd<vov?kw*(vov*vd-vd*vd/2)*m:0.5*kw*vov*vov*m}
+function eng(x,u){var a=Math.abs(x),p=[[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n']];if(!isFinite(x))return '∞ '+u;if(a==0)return '0 '+u;for(var i=0;i<p.length;i++)if(a>=p[i][0]*0.9995)return (x/p[i][0]).toPrecision(3)+' '+p[i][1]+u;return x.toExponential(2)+' '+u}
+function nice(v){var e=Math.pow(10,Math.floor(Math.log10(v))),m=v/e,c=[1,2,2.5,5,10];for(var i=0;i<c.length;i++)if(m<=c[i])return c[i]*e;return 10*e}
+function f2(x){return x.toFixed(2)}
+function calc(){
+var vov=P.vgs-P.vth,i0=id(P.vgs,P.vds),h=1e-4;
+var gm=(id(P.vgs+h,P.vds)-id(P.vgs-h,P.vds))/(2*h),gds=(id(P.vgs,P.vds+h)-id(P.vgs,Math.max(0,P.vds-h)))/(P.vds>=h?2*h:h);
+return {vov:vov,id:i0,gm:gm,ro:gds>0?1/gds:Infinity,reg:vov<=0?'cutoff':(P.vds<vov?'triode':'saturation'),kw:P.k*1e-6*P.w/P.l};
+}
+function draw(c){
+var W=600,H=330,L=58,R=14,T=16,B=42,vm=1.8,X=function(v){return L+v/vm*(W-L-R)},ymax=nice(id(1.8,1.8)*1.05||1e-6);
+var su,un;if(ymax>=1e-3){su=1e3;un='mA'}else if(ymax>=1e-6){su=1e6;un='µA'}else{su=1e9;un='nA'}
+var Y=function(i){return H-B-i/ymax*(H-T-B)},s='',i,v,k;
+var vov=c.vov,xb=X(Math.min(Math.max(vov,0),vm));
+if(vov<=0)s+='<rect x="'+L+'" y="'+T+'" width="'+(W-L-R)+'" height="'+(H-T-B)+'" fill="var(--cut)"/><text x="'+(L+(W-L-R)/2)+'" y="'+(T+24)+'" text-anchor="middle">cutoff: V<sub>GS</sub> ≤ V<sub>th</sub>, no channel, no current</text>'.replace(/<\/?sub>/g,'');
+else{
+s+='<rect x="'+L+'" y="'+T+'" width="'+(xb-L)+'" height="'+(H-T-B)+'" fill="var(--tri)"/>';
+if(vov<vm)s+='<rect x="'+xb+'" y="'+T+'" width="'+(W-R-xb)+'" height="'+(H-T-B)+'" fill="var(--sat)"/>';
+s+='<text x="'+(L+(xb-L)/2)+'" y="'+(T+16)+'" text-anchor="middle">triode</text>';
+if(vov<vm)s+='<text x="'+(xb+(W-R-xb)/2)+'" y="'+(T+16)+'" text-anchor="middle">saturation</text>';
+}
+for(i=0;i<=6;i++){v=i*0.3;s+='<line class="gr" x1="'+X(v)+'" y1="'+T+'" x2="'+X(v)+'" y2="'+(H-B)+'"/><text class="m" x="'+X(v)+'" y="'+(H-B+14)+'" text-anchor="middle">'+f2(v)+'</text>'}
+for(i=0;i<=5;i++){v=ymax*i/5;s+='<line class="gr" x1="'+L+'" y1="'+Y(v)+'" x2="'+(W-R)+'" y2="'+Y(v)+'"/><text class="m" x="'+(L-6)+'" y="'+(Y(v)+3)+'" text-anchor="end">'+(v*su).toPrecision(2).replace(/\.?0+$/,'')+'</text>'}
+s+='<line class="ax" x1="'+L+'" y1="'+(H-B)+'" x2="'+(W-R)+'" y2="'+(H-B)+'"/><line class="ax" x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+(H-B)+'"/>';
+s+='<text x="'+(L+(W-L-R)/2)+'" y="'+(H-6)+'" text-anchor="middle">Vds (V)</text><text transform="translate(13,'+(T+(H-T-B)/2)+') rotate(-90)" text-anchor="middle">Id ('+un+')</text>';
+var vg=[0.6,0.8,1.0,1.2,1.4,1.6,1.8];
+vg.forEach(function(g){
+if(g<=P.vth+0.005)return;
+var d='';for(k=0;k<=80;k++){v=vm*k/80;d+=(k?'L':'M')+X(v).toFixed(1)+','+Y(id(g,v)).toFixed(1)}
+s+='<path class="cv" d="'+d+'"/><text class="m" x="'+(W-R-2)+'" y="'+(Y(id(g,vm))-3)+'" text-anchor="end">'+g.toFixed(1)+' V</text>';
+});
+if(vov>0){
+var d2='',e;for(k=0;k<=60;k++){e=Math.min(vm,vov)*0}
+d2='';var vmaxov=Math.min(vm,vm-P.vth);for(k=0;k<=60;k++){e=vmaxov*k/60;d2+=(k?'L':'M')+X(e).toFixed(1)+','+Y(0.5*c.kw*e*e*(1+P.lam*e)).toFixed(1)}
+s+='<path class="bd" d="'+d2+'"/>';
+}
+var d3='';for(k=0;k<=100;k++){v=vm*k/100;d3+=(k?'L':'M')+X(v).toFixed(1)+','+Y(id(P.vgs,v)).toFixed(1)}
+s+='<path class="cs" d="'+d3+'"/>';
+var px=X(P.vds),py=Y(c.id);
+s+='<line x1="'+px+'" y1="'+py+'" x2="'+px+'" y2="'+(H-B)+'" stroke="var(--acc)" stroke-dasharray="3 3"/><line x1="'+L+'" y1="'+py+'" x2="'+px+'" y2="'+py+'" stroke="var(--acc)" stroke-dasharray="3 3"/><circle cx="'+px+'" cy="'+py+'" r="5.5" fill="var(--acc)" stroke="#fff" stroke-width="1.5"/>';
+$('.plot').innerHTML='<svg viewBox="0 0 '+W+' '+H+'">'+s+'</svg>';
+}
+function read(c){
+$('.read').innerHTML='<span>V<sub>ov</sub> = '+f2(c.vov)+' V</span><span>region: <b>'+c.reg+'</b></span><span>I<sub>D</sub> = '+eng(c.id,'A')+'</span><span>g<sub>m</sub> = '+eng(c.gm,'S')+'</span><span>r<sub>o</sub> = '+eng(c.ro,'Ω')+'</span>';
+}
+function steps(c){
+var lv=+$('.lv').value,h='',sat=c.reg=='saturation',cut=c.reg=='cutoff';
+function st(n,t,w,eq,nu){h+='<div class="st"><b>'+n+'. '+t+'</b><div>'+w+'</div>'+(lv>=2&&eq?'<div class="eq">'+eq+'</div>':'')+(lv>=3&&nu?'<div class="num">'+nu+'</div>':'')+'</div>'}
+st(1,'how far above turn-on is the gate?','a mosfet only conducts once the gate is high enough above the source to pull electrons into a channel under it. that turn-on level is V<sub>th</sub>. the overdrive V<sub>ov</sub> is the margin above it, and it is the main thing that sets the current.','V<sub>ov</sub> = V<sub>GS</sub> − V<sub>th</sub>','V<sub>ov</sub> = '+f2(P.vgs)+' − '+f2(P.vth)+' = '+f2(c.vov)+' V');
+st(2,'is the channel pinched off at the drain end?',cut?'with V<sub>ov</sub> ≤ 0 there is no channel at all, so this simple model says the current is zero (cutoff).':'the drain pulls on the channel with V<sub>DS</sub>. while V<sub>DS</sub> is small the channel runs the whole way to the drain and the transistor acts like a resistor controlled by the gate: <b>triode</b>. once V<sub>DS</sub> reaches V<sub>ov</sub> the channel is pinched off at the drain end, and extra V<sub>DS</sub> hardly changes the current any more, so it acts like a current source: <b>saturation</b>.','triode if V<sub>DS</sub> &lt; V<sub>ov</sub>; saturation if V<sub>DS</sub> ≥ V<sub>ov</sub>','V<sub>DS</sub> = '+f2(P.vds)+' V '+(cut?'(no channel)':(P.vds<c.vov?'&lt;':'≥')+' V<sub>ov</sub> = '+f2(c.vov)+' V → '+c.reg));
+st(3,'how much current flows?',cut?'zero, because there is no channel.':'W/L is the shape of the channel: wider means more lanes, longer means a longer trip, so I<sub>D</sub> grows with W/L. k′ is a process constant (current per volt² for a square transistor). in saturation the current grows with the <i>square</i> of the overdrive. the (1 + λV<sub>DS</sub>) factor is a small correction because V<sub>DS</sub> still nudges the current a little.',sat?'I<sub>D</sub> = ½ · k′ · (W/L) · V<sub>ov</sub>² · (1 + λV<sub>DS</sub>)':'I<sub>D</sub> = k′ · (W/L) · (V<sub>ov</sub>V<sub>DS</sub> − V<sub>DS</sub>²/2) · (1 + λV<sub>DS</sub>)',cut?'I<sub>D</sub> = 0':'k′·W/L = '+eng(c.kw,'A/V²')+'<br>I<sub>D</sub> = '+(sat?'½ · '+eng(c.kw,'A/V²')+' · '+f2(c.vov)+'² · (1 + '+P.lam.toFixed(2)+'·'+f2(P.vds)+')':eng(c.kw,'A/V²')+' · ('+f2(c.vov)+'·'+f2(P.vds)+' − '+f2(P.vds)+'²/2) · (1 + '+P.lam.toFixed(2)+'·'+f2(P.vds)+')')+' = '+eng(c.id,'A'));
+st(4,'how well does it amplify, and how stiff is it?',cut?'nothing to amplify while the transistor is off.':'g<sub>m</sub> (transconductance) says how many amps of drain current you gain per volt on the gate: it is the gain knob of an amplifier. r<sub>o</sub> (output resistance) says how steady the current is when V<sub>DS</sub> changes: bigger is a better current source. in saturation, g<sub>m</sub> is about 2I<sub>D</sub>/V<sub>ov</sub> and r<sub>o</sub> is about 1/(λI<sub>D</sub>).','g<sub>m</sub> = ∂I<sub>D</sub>/∂V<sub>GS</sub> , r<sub>o</sub> = 1 / (∂I<sub>D</sub>/∂V<sub>DS</sub>)',cut?'':'g<sub>m</sub> = '+eng(c.gm,'S')+' , r<sub>o</sub> = '+eng(c.ro,'Ω')+' (from the slope of the curves at the red dot)');
+$('.steps').innerHTML=h;
+}
+function upd(){
+root.querySelectorAll('[data-s]').forEach(function(e){var v=+e.value;P[e.dataset.s]=v;root.querySelector('[data-b="'+e.dataset.s+'"]').textContent=(e.dataset.s=='k'?v:e.dataset.s=='w'?v.toFixed(1):v.toFixed(2))});
+var c=calc();draw(c);read(c);steps(c);
+}
+root.addEventListener('input',upd);root.addEventListener('change',upd);
+upd();
+})();
+</script>
+</div>

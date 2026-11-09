@@ -1,0 +1,126 @@
+<div id="stmcalc">
+<style>
+#stmcalc{--fg:#1a1a1a;--mut:#6b6b6b;--line:#c9c9c9;--card:#f4f4f2;--bg:#fff;--ok:#d3ecd9;--warn:#f7e8b5;--bad:#f6cdc9;container-type:inline-size;margin:1.2em 0;padding:10px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+#stmcalc *{box-sizing:border-box}
+#stmcalc .tabs{display:flex;gap:6px;margin-bottom:10px}
+#stmcalc button{font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:4px 12px;cursor:pointer;margin:0}
+#stmcalc button.on{background:var(--card);border-color:var(--fg);font-weight:600}
+#stmcalc .row{display:flex;flex-wrap:wrap;gap:8px 16px;margin:8px 0}
+#stmcalc label{font-size:.88em}
+#stmcalc input,#stmcalc select{font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:3px 6px;margin:0}
+#stmcalc input[type=number]{width:9em}
+#stmcalc table{border-collapse:collapse;width:100%;font-size:.88em;margin:8px 0;display:block;overflow-x:auto}
+#stmcalc th,#stmcalc td{border:1px solid var(--line);padding:3px 8px;text-align:right;white-space:nowrap}
+#stmcalc th{background:var(--card);font-weight:600}
+#stmcalc td.l,#stmcalc th.l{text-align:left}
+#stmcalc .ok{background:var(--ok)}#stmcalc .warn{background:var(--warn)}#stmcalc .bad{background:var(--bad)}
+#stmcalc code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88em;background:var(--card);padding:1px 4px;border-radius:3px}
+#stmcalc pre{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.82em;background:var(--card);padding:6px 10px;border-radius:4px;overflow-x:auto;margin:6px 0}
+#stmcalc .msg{margin:8px 0;font-size:.92em}
+#stmcalc details{margin:8px 0;font-size:.9em}
+#stmcalc summary{cursor:pointer;color:var(--mut)}
+#stmcalc .note{font-size:.78em;color:var(--mut);margin-top:10px}
+#stmcalc .eq{font-family:Georgia,"Times New Roman",serif;background:var(--card);padding:4px 8px;border-radius:4px;margin:4px 0;overflow-x:auto}
+</style>
+<div class="tabs"><button class="on" data-t="tim">timer / pwm frequency</button><button data-t="uart">uart baud rate</button></div>
+<div data-p="tim">
+<div class="row">
+<label>timer clock <input class="fclk" type="number" value="48" min="0" step="any"> <select class="fu"><option value="1e6" selected>MHz</option><option value="1e3">kHz</option><option value="1">Hz</option></select></label>
+<label>target <input class="tv" type="number" value="1" min="0" step="any"> <select class="tu"><option value="f1">Hz</option><option value="f1e3" selected>kHz</option><option value="f1e6">MHz</option><option value="p1e-3">ms (period)</option><option value="p1e-6">µs (period)</option></select></label>
+<label>counter <select class="bits"><option value="65535" selected>16-bit (most timers)</option><option value="4294967295">32-bit (e.g. TIM2 on many chips)</option></select></label>
+</div>
+<div class="msg tmsg"></div>
+<div class="tout"></div>
+<details><summary>how a timer makes a frequency (from scratch)</summary>
+<p>a timer is a counter driven by a clock. first the <b>prescaler (PSC)</b> divides the timer clock to make a slower counting clock: it counts PSC+1 input ticks per counter tick (so PSC = 0 means no division). then the counter counts up from 0 to the <b>auto-reload value (ARR)</b> and wraps back to 0, which takes ARR+1 counter ticks. each wrap is an “update event”: it can fire an interrupt, or restart a PWM period.</p>
+<div class="eq">f<sub>out</sub> = f<sub>clk</sub> / ((PSC + 1) · (ARR + 1))</div>
+<p>for pwm, ARR+1 is also the number of steps you can divide one period into, so a bigger ARR gives finer duty-cycle resolution. that is why the list prefers a small PSC and a big ARR when several pairs hit the same frequency.</p>
+<p>which clock? it is the clock arriving at that timer, not the cpu clock. on most chips, if the apb bus prescaler is not 1, the timer clock is twice the apb clock. check your clock tree in cubemx. this tool assumes edge-aligned (up-counting) mode; center-aligned pwm halves the frequency.</p>
+</details>
+</div>
+<div data-p="uart" style="display:none">
+<div class="row">
+<label>usart clock <input class="uclk" type="number" value="48" min="0" step="any"> MHz</label>
+<label>baud rate <input class="baud" type="number" value="115200" min="1" step="1" list="stmcalc-bauds"></label>
+<datalist id="stmcalc-bauds"><option value="9600"><option value="19200"><option value="38400"><option value="57600"><option value="115200"><option value="230400"><option value="460800"><option value="921600"><option value="1000000"><option value="2000000"></datalist>
+</div>
+<div class="uout"></div>
+<details><summary>how a usart makes a baud rate (from scratch)</summary>
+<p>a uart sends bits one at a time at an agreed speed, the baud rate (bits per second). the usart makes it by dividing its input clock with a divider called USARTDIV, which is stored in the baud rate register (BRR) as a number with a few fractional bits. with 16× oversampling the receiver takes 16 samples per bit; with 8× it takes 8, which allows higher baud rates but a coarser divider.</p>
+<div class="eq">baud = f<sub>clk</sub> / (oversampling · USARTDIV)</div>
+<p>because the divider has limited fractional resolution, the real baud rate is never perfectly exact. the receiver re-syncs at each start bit, so a mismatch of roughly 2% between the two ends is usually fine for 8N1 frames, and beyond about 3% you will see garbage characters.</p>
+</details>
+</div>
+<div class="note">written for the classic stm32 usart (f0/f1/f3/f4/l0/l1/…). newer series (g0, g4, l4, u5…) add a clock prescaler and lpuart uses a different formula (BRR = 256·f<sub>clk</sub>/baud), so double-check the reference manual of your chip.</div>
+<script>
+(function(){
+var root=document.getElementById('stmcalc'),$=function(s){return root.querySelector(s)};
+function eng(x,u){var a=Math.abs(x),p=[[1e9,'G'],[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n']];if(a==0)return '0 '+u;for(var i=0;i<p.length;i++)if(a>=p[i][0]*0.9999995)return +(x/p[i][0]).toPrecision(7)+' '+p[i][1]+u;return x.toExponential(3)+' '+u}
+function pct(e){var a=Math.abs(e)*100;if(a==0)return '0 %';return (e<0?'−':e>0?'+':'')+(a<0.0001?a.toExponential(1):a.toFixed(a<0.01?4:a<1?3:2))+' %'}
+function solve(){
+var fclk=+$('.fclk').value*(+$('.fu').value),tu=$('.tu').value,tv=+$('.tv').value,maxA=+$('.bits').value,m=$('.tmsg'),o=$('.tout');
+var ft=tu.charAt(0)=='f'?tv*(+tu.slice(1)):1/(tv*(+tu.slice(1)));
+if(!(fclk>0)||!(ft>0)||!isFinite(ft)){m.textContent='enter a timer clock and a target above zero.';o.innerHTML='';return}
+var D=fclk/ft;
+if(D<1){m.textContent='the target ('+eng(ft,'Hz')+') is faster than the timer clock ('+eng(fclk,'Hz')+'): a timer cannot divide by less than 1.';o.innerHTML='';return}
+var seen={},list=[],p,n,c,k,f,tot,e;
+for(p=1;p<=65536;p++){
+c=[Math.floor(D/p),Math.ceil(D/p)];
+for(k=0;k<2;k++){
+n=c[k];if(n<1)n=1;if(n>maxA+1)n=maxA+1;
+tot=p*n;if(seen[tot]!==undefined&&seen[tot]>=n)continue;
+f=fclk/tot;e=(f-ft)/ft;seen[tot]=n;list.push({p:p-1,n:n-1,f:f,e:e,tot:tot});
+}
+}
+var best={};list.forEach(function(r){if(!best[r.tot]||r.n>best[r.tot].n)best[r.tot]=r});
+list=Object.keys(best).map(function(k){return best[k]});
+list.sort(function(a,b){return Math.abs(a.e)-Math.abs(b.e)||b.n-a.n});
+list=list.slice(0,6);
+if(Math.abs(list[0].e)<1e-12&&Math.abs(D-Math.round(D))<1e-9){
+var Dn=Math.round(D),ex=[],q;
+for(q=1;q<=65536;q++){if(Dn%q==0&&Dn/q<=maxA+1)ex.push({p:q-1,n:Dn/q-1,f:ft,e:0,tot:Dn})}
+ex.sort(function(a,b){return b.n-a.n});
+var rnd=function(x){return x>=10&&/^10*$/.test(String(x))},pick=ex.slice(0,3);
+ex.forEach(function(r){if(pick.length<6&&pick.indexOf(r)<0&&(rnd(r.p+1)||rnd(r.n+1)))pick.push(r)});
+list=pick;
+}
+var t=list[0];
+m.innerHTML=Math.abs(t.e)<1e-12?'exact match found: counter clock = '+eng(fclk/(t.p+1),'Hz')+', wraps every '+(t.n+1)+' counts.':'no exact pair exists; the closest is off by '+pct(t.e)+'.';
+var h='<table><tr><th class="l">PSC</th><th>ARR</th><th>actual frequency</th><th>actual period</th><th>error</th><th>pwm steps</th></tr>';
+list.forEach(function(r,i){var cl=Math.abs(r.e)<1e-12?'ok':Math.abs(r.e)<1e-3?'warn':'bad';h+='<tr><td class="l">'+r.p+'</td><td>'+r.n+'</td><td>'+eng(r.f,'Hz')+'</td><td>'+eng(1/r.f,'s')+'</td><td class="'+cl+'">'+(Math.abs(r.e)<1e-12?'exact':pct(r.e))+'</td><td>'+(r.n+1)+' (≈'+Math.log2(r.n+1).toFixed(1)+' bit)</td></tr>'});
+h+='</table><div>best pair as code:</div><pre>// HAL\nhtim.Init.Prescaler = '+t.p+';\nhtim.Init.Period    = '+t.n+';   // ARR\n// registers\nTIMx-&gt;PSC = '+t.p+';\nTIMx-&gt;ARR = '+t.n+';</pre>';
+o.innerHTML=h;
+}
+function brr(fclk,baud,os){
+var div=fclk/(os*baud),mant=Math.floor(div),fr=Math.round((div-mant)*os);
+if(fr>=os){mant++;fr=0}
+if(mant<1)return null;
+if(mant>4095)return {big:true};
+var real=fclk/(os*(mant+fr/os));
+return {brr:(mant<<4)|fr,mant:mant,fr:fr,div:mant+fr/os,real:real,e:(real-baud)/baud};
+}
+function uart(){
+var fclk=+$('.uclk').value*1e6,baud=+$('.baud').value,o=$('.uout');
+if(!(fclk>0)||!(baud>0)){o.textContent='enter a clock and a baud rate.';return}
+var h='<table><tr><th class="l">oversampling</th><th>BRR</th><th>USARTDIV</th><th>actual baud</th><th>error</th><th class="l">verdict</th></tr>';
+[16,8].forEach(function(os){
+var r=brr(fclk,baud,os);
+if(!r){h+='<tr><td class="l">'+os+'×</td><td colspan="5" class="l bad">baud is too high for this clock at '+os+'× (divider would be below 1)</td></tr>';return}
+if(r.big){h+='<tr><td class="l">'+os+'×</td><td colspan="5" class="l bad">baud is too low: divider does not fit in 12 bits</td></tr>';return}
+var a=Math.abs(r.e)*100,cl=a<=2?'ok':a<=3?'warn':'bad',vd=a<=2?'fine':a<=3?'marginal':'likely to fail';
+var reg=r.brr;
+h+='<tr><td class="l">'+os+'×</td><td>0x'+reg.toString(16).toUpperCase().padStart(4,'0')+' ('+reg+')</td><td>'+r.mant+' + '+r.fr+'/'+os+' = '+r.div.toFixed(4)+'</td><td>'+r.real.toFixed(1)+'</td><td class="'+cl+'">'+pct(r.e)+'</td><td class="l '+cl+'">'+vd+'</td></tr>';
+});
+h+='</table><div class="msg">remember the other device has its own error too: the two errors add up, so aim for the smallest error you can (for example by choosing a clock that divides evenly).</div>';
+o.innerHTML=h;
+}
+root.addEventListener('input',function(e){if(e.target.closest('[data-p="tim"]'))solve();else if(e.target.closest('[data-p="uart"]'))uart()});
+root.addEventListener('change',function(e){if(e.target.closest('[data-p="tim"]'))solve();else if(e.target.closest('[data-p="uart"]'))uart()});
+root.querySelectorAll('.tabs button').forEach(function(b){b.addEventListener('click',function(){
+root.querySelectorAll('.tabs button').forEach(function(x){x.classList.toggle('on',x==b)});
+root.querySelectorAll('[data-p]').forEach(function(p){p.style.display=p.dataset.p==b.dataset.t?'':'none'});
+})});
+solve();uart();
+})();
+</script>
+</div>

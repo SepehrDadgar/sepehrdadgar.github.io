@@ -1,0 +1,2 @@
+# STM32 Calc
+{% include stm32-calc.html %}
