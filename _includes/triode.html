@@ -1,0 +1,152 @@
+<div id="tri">
+<style>
+#tri{--fg:#1a1a1a;--mut:#6b6b6b;--line:#c9c9c9;--card:#f4f4f2;--bg:#fff;--tri:#d4e3f7;--sat:#d3ecd9;--cut:#ececec;--acc:#c0392b;container-type:inline-size;margin:1.2em 0;padding:10px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+#tri *{box-sizing:border-box}
+#tri svg{width:100%;height:auto;display:block;margin:0}
+#tri .top{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:6px}
+#tri select{font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:3px 6px;max-width:100%}
+#tri label{font-size:.88em;display:block}
+#tri .desc{font-size:.92em;margin:6px 0 8px}
+#tri .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px 14px;margin:8px 0}
+#tri input[type=range]{width:100%;margin:2px 0 0;padding:0}
+#tri details{margin:8px 0;font-size:.9em}
+#tri summary{cursor:pointer;color:var(--mut)}
+#tri .verdict{border-radius:6px;padding:8px 12px;margin:10px 0;border:1px solid var(--line)}
+#tri .verdict b.big{font-size:1.25em;letter-spacing:.03em}
+#tri .v-tri{background:var(--tri)}#tri .v-sat{background:var(--sat)}#tri .v-cut{background:var(--cut)}
+#tri .verdict div{font-size:.9em}
+#tri .two{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:10px;align-items:center}
+#tri .hint{font-size:.9em;border-left:3px solid var(--acc);padding:2px 0 2px 10px;margin:10px 0}
+#tri .hint div{margin:3px 0}
+#tri ul{margin:4px 0 4px 18px;padding:0}
+#tri .cap{font-size:.8em;color:var(--mut);text-align:center}
+#tri .gr{stroke:var(--line);stroke-width:.6}#tri .ax{stroke:var(--fg);stroke-width:1.2}
+#tri .s1{fill:none;stroke:var(--acc);stroke-width:2.6}#tri .s2{fill:none;stroke:#2b6cb0;stroke-width:2.2}#tri .sd{fill:none;stroke:var(--fg);stroke-width:1.2;stroke-dasharray:5 4}
+#tri svg text{fill:var(--fg);font-family:inherit;font-size:11px}#tri svg .m{fill:var(--mut);font-size:10px}
+</style>
+<div class="top"><label>case <select class="cs"></select></label><label class="polw" style="display:none">device <select class="pol"><option value="n">nmos</option><option value="p">pmos</option></select></label></div>
+<div class="desc"></div>
+<div class="row sl"></div>
+<details><summary>more knobs: V<sub>th</sub>, k′, W, L, λ</summary><div class="row adv"></div></details>
+<div class="verdict"></div>
+<div class="two"><div class="xs"></div><div class="nl"></div></div>
+<div class="plot"></div>
+<div class="hint"></div>
+<details><summary>cheat sheet: telling the region from node voltages</summary>
+<ul>
+<li><b>cutoff</b>: V<sub>GS</sub> ≤ V<sub>th</sub> (no channel at all).</li>
+<li><b>triode</b>: V<sub>GS</sub> &gt; V<sub>th</sub> <u>and</u> V<sub>DS</sub> &lt; V<sub>GS</sub> − V<sub>th</sub>.</li>
+<li><b>saturation</b>: V<sub>GS</sub> &gt; V<sub>th</sub> <u>and</u> V<sub>DS</sub> ≥ V<sub>GS</sub> − V<sub>th</sub>.</li>
+<li><b>same test with node voltages</b> (nmos, source at ground): saturation needs V<sub>D</sub> ≥ V<sub>G</sub> − V<sub>th</sub>. in words: <i>the drain must stay high enough</i>. equivalently, triode happens when the gate-to-drain voltage V<sub>GD</sub> is bigger than V<sub>th</sub>, because then there is still a channel at the drain end.</li>
+<li><b>pmos</b> mirrors everything: triode if V<sub>SD</sub> &lt; V<sub>SG</sub> − |V<sub>thp</sub>|, i.e. the drain is more than |V<sub>thp</sub>| above the gate: V<sub>D</sub> − V<sub>G</sub> &gt; |V<sub>thp</sub>|.</li>
+<li><b>where it bites in real circuits</b>: an output swinging too low (nmos) or too high (pmos), a load resistor or current that is too big, too many transistors stacked for the supply, a V<sub>th</sub> that is higher than you assumed, or a gate driven harder than you planned.</li>
+</ul>
+</details>
+<script>
+(function(){
+var root=document.getElementById('tri'),$=function(s){return root.querySelector(s)};
+var P={vth:.5,k:200,w:10,l:.5,lam:.1},VDD=1.8,C={},pm=false,cur=0;
+function id(vg,vd,m){m=m||1;var vov=vg-P.vth;if(vov<=0||vd<0)return 0;var kw=m*P.k*1e-6*P.w/P.l,f=1+P.lam*vd;return vd<vov?kw*(vov*vd-vd*vd/2)*f:.5*kw*vov*vov*f}
+function bis(f,lo,hi){var m,i;for(i=0;i<60;i++){m=(lo+hi)/2;if(f(m)>0)hi=m;else lo=m}return (lo+hi)/2}
+function gen(f,a,b,n){var o=[],i,x;for(i=0;i<=n;i++){x=a+(b-a)*i/n;o.push([x,f(x)])}return o}
+function nice(v){var e=Math.pow(10,Math.floor(Math.log10(v))),m=v/e,c=[1,2,2.5,5,10],i;for(i=0;i<c.length;i++)if(m<=c[i])return c[i]*e;return 10*e}
+function tf(v){return String(+v.toPrecision(2))}
+function f2(x){return x.toFixed(2)}
+function eng(x,u){var a=Math.abs(x),p=[[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n']],i;if(a==0)return '0 '+u;for(i=0;i<p.length;i++)if(a>=p[i][0]*0.9995)return (x/p[i][0]).toPrecision(3)+' '+p[i][1]+u;return x.toExponential(2)+' '+u}
+function isc(ym){return ym>=1e-3?[1e3,'mA']:ym>=1e-6?[1e6,'µA']:[1e9,'nA']}
+function vgsFor(I){return bis(function(g){return id(g,g)-I*1e-6},P.vth,6)}
+function nm(){return pm?{g:'V<sub>SG</sub>',d:'V<sub>SD</sub>',t:'|V<sub>thp</sub>|',o:'V<sub>ov</sub>',x:'V<sub>DG</sub>'}:{g:'V<sub>GS</sub>',d:'V<sub>DS</sub>',t:'V<sub>th</sub>',o:'V<sub>ov</sub>',x:'V<sub>GD</sub>'}}
+function mkr(r){r.vov=r.vgs-P.vth;r.reg=r.vov<=0?'cut':(r.vds<r.vov?'tri':'sat');r.margin=r.vds-r.vov;return r}
+function st(t){return String(t).replace(/<sub>(.*?)<\/sub>/g,function(m,x){return x.toLowerCase()})}
+function plot(o){
+var W=600,H=290,L=58,R=14,T=14,B=40,xs=W-L-R,ys=H-T-B,s='',i,v;
+var X=function(a){return L+a/o.xmax*xs},Y=function(a){return H-B-a/o.ymax*ys};
+(o.bands||[]).forEach(function(b){if(b.x1>b.x0){var w=X(b.x1)-X(b.x0);s+='<rect x="'+X(b.x0)+'" y="'+T+'" width="'+w+'" height="'+ys+'" fill="var(--'+b.c+')"/>';if(w>46)s+='<text x="'+(X(b.x0)+w/2)+'" y="'+(T+14)+'" text-anchor="middle">'+st(b.t)+'</text>'}});
+var sx=nice(o.xmax/5),sy=nice(o.ymax/5);for(v=0;v<=o.xmax+1e-9;v+=sx){s+='<line class="gr" x1="'+X(v)+'" y1="'+T+'" x2="'+X(v)+'" y2="'+(H-B)+'"/><text class="m" x="'+X(v)+'" y="'+(H-B+14)+'" text-anchor="middle">'+tf(v)+'</text>'}
+for(v=0;v<=o.ymax+1e-9;v+=sy){s+='<line class="gr" x1="'+L+'" y1="'+Y(v)+'" x2="'+(W-R)+'" y2="'+Y(v)+'"/><text class="m" x="'+(L-6)+'" y="'+(Y(v)+3)+'" text-anchor="end">'+tf(v*(o.ysc||1))+'</text>'}
+s+='<line class="ax" x1="'+L+'" y1="'+(H-B)+'" x2="'+(W-R)+'" y2="'+(H-B)+'"/><line class="ax" x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+(H-B)+'"/>';
+s+='<text x="'+(L+xs/2)+'" y="'+(H-6)+'" text-anchor="middle">'+st(o.xl)+'</text><text transform="translate(13,'+(T+ys/2)+') rotate(-90)" text-anchor="middle">'+st(o.yl)+'</text>';
+(o.series||[]).forEach(function(se){s+='<path class="'+se.c+'" d="'+se.p.map(function(q,k){return (k?'L':'M')+X(q[0]).toFixed(1)+','+Y(Math.min(q[1],o.ymax*1.02)).toFixed(1)}).join('')+'"/>'+(se.t?'<text x="'+(X(se.p[se.p.length-1][0])-4)+'" y="'+(Y(Math.min(se.p[se.p.length-1][1],o.ymax))-5)+'" text-anchor="end">'+st(se.t)+'</text>':'')});
+if(o.mk){var px=X(o.mk[0]),py=Y(Math.min(o.mk[1],o.ymax));s+='<line x1="'+px+'" y1="'+py+'" x2="'+px+'" y2="'+(H-B)+'" stroke="var(--acc)" stroke-dasharray="3 3"/><line x1="'+L+'" y1="'+py+'" x2="'+px+'" y2="'+py+'" stroke="var(--acc)" stroke-dasharray="3 3"/><circle cx="'+px+'" cy="'+py+'" r="5.5" fill="var(--acc)" stroke="#fff" stroke-width="1.5"/>'}
+return '<svg viewBox="0 0 '+W+' '+H+'">'+s+'</svg>';
+}
+var CASES=[
+{name:'1 · the rule: set the voltages yourself',
+desc:'start here. the transistor has no circuit around it: you choose the gate voltage and the drain voltage. watch the channel in the drawing and the red dot on the curve. it is in triode while V<sub>DS</sub> is smaller than V<sub>ov</sub>.',
+ctl:function(){var n=nm();return [['vgs',n.g+' (gate drive)',0,1.8,.01,1.0,'V'],['vds',n.d+' (drain)',0,1.8,.01,.3,'V']]},
+solve:function(c){return mkr({vgs:c.vgs,vds:c.vds,id:id(c.vgs,c.vds)})},
+plot:function(r){var ym=nice(Math.max(id(r.vgs,VDD),r.id,1e-6)*1.15),sc=isc(ym);return plot({xmax:VDD,ymax:ym,ysc:sc[0],xl:nm().d+' (V)',yl:'Id ('+sc[1]+')',bands:r.vov>0?[{x0:0,x1:Math.min(r.vov,VDD),c:'tri',t:'triode'},{x0:Math.min(r.vov,VDD),x1:VDD,c:'sat',t:'saturation'}]:[{x0:0,x1:VDD,c:'cut',t:'cutoff'}],series:[{c:'s1',p:gen(function(v){return id(r.vgs,v)},0,VDD,100)}],mk:[r.vds,r.id]})},
+hint:function(r){var n=nm();return ['to <b>enter</b> triode: lower '+n.d+' (or raise '+n.g+', which raises V<sub>ov</sub>). to <b>leave</b> it: the opposite.','right now '+n.d+' − V<sub>ov</sub> = '+f2(r.margin)+' V. negative means triode, positive means saturation, and that number is your “headroom”.']}},
+{name:'2 · resistor load (common-source stage)',
+desc:'nmos source at ground, drain connected to V<sub>DD</sub> through a resistor R<sub>D</sub>, input on the gate. the drain voltage is no longer your choice: V<sub>out</sub> = V<sub>DD</sub> − I<sub>D</sub>·R<sub>D</sub>, so as V<sub>in</sub> rises, the current rises, the resistor drops more voltage, and V<sub>out</sub> (which is V<sub>DS</sub>) falls until it goes below V<sub>ov</sub>.',
+ctl:function(){return [['vin','input V<sub>in</sub> (gate)',0,3.3,.01,1.0,'V'],['rd','load resistor R<sub>D</sub>',.5,10,.1,2,'kΩ'],['vdd','supply V<sub>DD</sub>',1,3.3,.1,1.8,'V']]},
+solve:function(c){VDD=c.vdd;var vo=bis(function(m){return m+id(c.vin,m)*c.rd*1e3-c.vdd},0,c.vdd);return mkr({vgs:c.vin,vds:vo,id:id(c.vin,vo)})},
+plot:function(r,c){var vt=null,v,i;for(i=0;i<=360;i++){v=P.vth+(VDD-P.vth)*i/360;var vo=bis(function(m){return m+id(v,m)*c.rd*1e3-VDD},0,VDD);if(vo<v-P.vth){vt=v;break}}
+return plot({xmax:VDD,ymax:VDD,xl:'V in (V)',yl:'V out = V<sub>DS</sub> (V)',bands:[{x0:0,x1:P.vth,c:'cut',t:'cutoff'},{x0:P.vth,x1:vt===null?VDD:vt,c:'sat',t:'saturation'},{x0:vt===null?VDD:vt,x1:VDD,c:'tri',t:'triode'}],
+series:[{c:'sd',p:[[P.vth,0],[VDD,VDD-P.vth]],t:'V out = V in − V<sub>th</sub>'},{c:'s1',p:gen(function(v){return bis(function(m){return m+id(v,m)*c.rd*1e3-VDD},0,VDD)},0,VDD,120)}],mk:[c.vin,r.vds]})},
+hint:function(r,c){var vt=null,v,i;for(i=0;i<=360;i++){v=P.vth+(VDD-P.vth)*i/360;if(bis(function(m){return m+id(v,m)*c.rd*1e3-VDD},0,VDD)<v-P.vth){vt=v;break}}
+return ['the <b>dashed line</b> is the edge: V<sub>out</sub> = V<sub>in</sub> − V<sub>th</sub>. the curve is in saturation while it is above that line, and in triode once it falls below it.',vt===null?'with these values the device never reaches triode before V<sub>in</sub> hits V<sub>DD</sub>.':'with these values it enters triode at V<sub>in</sub> ≈ <b>'+f2(vt)+' V</b>. try a bigger R<sub>D</sub> or a wider W: it happens earlier, because the same V<sub>in</sub> makes more voltage drop across R<sub>D</sub>.','this is why an amplifier’s usable input range ends: past that point the gain collapses because the transistor stops acting like a current source.']}},
+{name:'3 · diode-connected (gate tied to drain)',
+desc:'a current source forces a current I<sub>D</sub> through the transistor and the gate is wired to the drain, so V<sub>GS</sub> = V<sub>DS</sub>. this is the input side of every current mirror. can it ever be in triode?',
+ctl:function(){return [['i','forced current I<sub>D</sub>',1,1000,1,100,'µA']]},
+solve:function(c){var g=vgsFor(c.i);return mkr({vgs:g,vds:g,id:c.i*1e-6})},
+plot:function(r,c){return plot({xmax:1000,ymax:1.8,xl:'forced current (µA)',yl:'voltage (V)',bands:[{x0:0,x1:1000,c:'sat',t:'always saturation'}],series:[{c:'s1',p:gen(function(i){return vgsFor(Math.max(i,0.001))},0,1000,100),t:'V<sub>DS</sub> (= V<sub>GS</sub>)'},{c:'s2',p:gen(function(i){return vgsFor(Math.max(i,0.001))-P.vth},0,1000,100),t:'V<sub>ov</sub>'}],mk:[c.i,r.vds]})},
+hint:function(r){return ['here V<sub>DS</sub> = V<sub>GS</sub> and V<sub>ov</sub> = V<sub>GS</sub> − V<sub>th</sub>, so V<sub>DS</sub> − V<sub>ov</sub> = <b>V<sub>th</sub> = '+f2(P.vth)+' V</b>, always positive.','the gap never closes, so a diode-connected transistor <b>cannot</b> enter triode while it conducts. that is also why it is a safe bias device.']}},
+{name:'4 · current-mirror output (headroom)',
+desc:'a diode-connected transistor sets V<sub>GS</sub> from the reference current. a second transistor, m times wider, copies it. it only copies well while it stays in saturation, which needs its drain voltage V<sub>out</sub> to be at least V<sub>ov</sub>. slide V<sub>out</sub> down and watch it fall into triode.',
+ctl:function(){return [['iref','reference current',10,500,1,100,'µA'],['m','mirror ratio m',1,8,1,2,'×'],['vo','output voltage V<sub>out</sub>',0,VDD,.01,.9,'V']]},
+solve:function(c){var g=vgsFor(c.iref);return mkr({vgs:g,vds:c.vo,id:id(g,c.vo,c.m),ideal:c.m*c.iref*1e-6})},
+plot:function(r,c){var ym=nice(Math.max(id(r.vgs,VDD,c.m),r.ideal)*1.15),sc=isc(ym);return plot({xmax:VDD,ymax:ym,ysc:sc[0],xl:'V out (V)',yl:'I out ('+sc[1]+')',bands:[{x0:0,x1:Math.min(r.vov,VDD),c:'tri',t:'triode'},{x0:Math.min(r.vov,VDD),x1:VDD,c:'sat',t:'saturation'}],series:[{c:'sd',p:[[0,r.ideal],[VDD,r.ideal]],t:'ideal m·I<sub>ref</sub>'},{c:'s1',p:gen(function(v){return id(r.vgs,v,c.m)},0,VDD,100)}],mk:[c.vo,r.id]})},
+hint:function(r,c){var e=(r.id-r.ideal)/r.ideal*100;return ['the output transistor has the same V<sub>GS</sub> ('+f2(r.vgs)+' V) so the same V<sub>ov</sub> = <b>'+f2(r.vov)+' V</b>. it stays saturated only while V<sub>out</sub> ≥ '+f2(r.vov)+' V: that is the mirror’s <b>minimum output voltage</b> (compliance).','copy error right now: '+(e>=0?'+':'')+e.toFixed(1)+' % (some of it is channel-length modulation even in saturation; once in triode the current collapses).','more reference current means more V<sub>ov</sub>, which means more headroom needed.']}},
+{name:'5 · a switch (triode on purpose)',
+desc:'sometimes triode is exactly what you want. a transistor used as a pull-down switch is driven hard (big V<sub>GS</sub>) so that the load current flows with a tiny V<sub>DS</sub>. in triode it behaves like a resistor, R<sub>on</sub> ≈ 1 / (k′·W/L·V<sub>ov</sub>). ask for too much current and it leaves triode.',
+ctl:function(){return [['vgs','gate drive V<sub>GS</sub>',0.6,1.8,.01,1.8,'V'],['i','load current',1,1500,1,100,'µA']]},
+solve:function(c){var vg=c.vgs,I=c.i*1e-6;if(vg<=P.vth)return mkr({vgs:vg,vds:VDD,id:0,short:true});var vd=bis(function(v){return id(vg,v)-I},0,VDD),sh=id(vg,VDD)<I;return mkr({vgs:vg,vds:vd,id:id(vg,vd),short:sh})},
+plot:function(r,c){var xm=Math.max(.3,Math.min(VDD,r.vds*1.4)),ym=nice(Math.max(id(r.vgs,xm),r.id,1e-6)*1.1),sc=isc(ym),kw=P.k*1e-6*P.w/P.l,g0=r.vov>0?kw*r.vov:0;return plot({xmax:xm,ymax:ym,ysc:sc[0],xl:'V<sub>DS</sub> (V)',yl:'Id ('+sc[1]+')',bands:r.vov>0?[{x0:0,x1:Math.min(r.vov,xm),c:'tri',t:'triode'},{x0:Math.min(r.vov,xm),x1:xm,c:'sat',t:'saturation'}]:[{x0:0,x1:xm,c:'cut',t:'cutoff'}],series:[{c:'sd',p:[[0,0],[xm,g0*xm]],t:'1/R<sub>on</sub> line'},{c:'s1',p:gen(function(v){return id(r.vgs,v)},0,xm,100)}],mk:[r.vds,r.id]})},
+hint:function(r,c){var kw=P.k*1e-6*P.w/P.l;if(r.vov<=0)return ['the gate is below V<sub>th</sub>: the switch is off.'];var ron=1/(kw*r.vov);if(r.short)return ['<b>the load asks for more current than this transistor can pass</b>, so V<sub>DS</sub> climbs out of triode into saturation and the switch stops behaving like a small resistor. fix: raise V<sub>GS</sub>, make W bigger, or ask for less current.'];return ['R<sub>on</sub> ≈ 1/(k′·W/L·V<sub>ov</sub>) = <b>'+eng(ron,'Ω')+'</b>. the switch drops about I·R<sub>on</sub> = '+eng(c.i*1e-6*ron,'V')+', and the red dot sits on the straight 1/R<sub>on</sub> line: that straight line <i>is</i> what “triode = resistor” means.',r.short?'<b>the load asks for more current than this transistor can pass</b>, so V<sub>DS</sub> climbs out of triode into saturation. fix: raise V<sub>GS</sub>, make W bigger, or ask for less current.':'to make a better switch: raise V<sub>GS</sub> (more V<sub>ov</sub>), widen W, or shorten L, all of which lower R<sub>on</sub>.']}}
+];
+function mk(a){return '<label>'+a[1]+' = <b data-b="'+a[0]+'"></b> '+a[6]+'<input type="range" data-s="'+a[0]+'" min="'+a[2]+'" max="'+a[3]+'" step="'+a[4]+'" value="'+a[5]+'"></label>'}
+var ADV=[['vth','V<sub>th</sub>',0.2,0.9,0.01,0.5,'V'],['k','k′',50,400,5,200,'µA/V²'],['w','W',0.5,50,0.5,10,'µm'],['l','L',0.18,2,0.01,0.5,'µm'],['lam','λ',0,0.4,0.01,0.1,'1/V']];
+function build(){
+VDD=1.8;var cs=CASES[cur],ctl=cs.ctl();
+$('.desc').innerHTML=cs.desc;$('.polw').style.display=cur==0?'':'none';if(cur!=0)pm=false;
+$('.sl').innerHTML=ctl.map(mk).join('');
+ctl.forEach(function(a){C[a[0]]=a[5]});
+}
+function xsec(r){
+var vov=r.vov,s='',x0=110,W=140,ds=Math.min(50,38*Math.max(vov,0)),cap='',xe,poly,gm='';
+s+='<rect x="10" y="98" width="340" height="92" fill="#ece8e0" stroke="#999"/><rect x="30" y="98" width="80" height="34" fill="#f0c9a3" stroke="#999"/><rect x="250" y="98" width="80" height="34" fill="#f0c9a3" stroke="#999"/><rect x="110" y="92" width="140" height="6" fill="#bfd7ea" stroke="#999"/><rect x="110" y="78" width="140" height="14" fill="#c9c9c9" stroke="#666"/>';
+if(vov>0){
+if(r.vds<vov){poly='110,98 250,98 250,'+(98+ds*(1-r.vds/vov)).toFixed(1)+' 110,'+(98+ds);cap='channel still reaches the drain: <b>triode</b>'}
+else{xe=x0+W*vov/r.vds;poly='110,98 '+xe.toFixed(1)+',98 110,'+(98+ds);gm='<rect x="'+xe.toFixed(1)+'" y="98" width="'+(250-xe).toFixed(1)+'" height="14" fill="none" stroke="#c0392b" stroke-dasharray="3 2"/>';cap='channel pinched off before the drain: <b>saturation</b>'}
+s+='<polygon points="'+poly+'" fill="#4f8fdc" fill-opacity=".8" stroke="#2b6cb0"/>'+gm;
+}else cap='no channel: <b>cutoff</b>';
+s+='<text x="70" y="72" text-anchor="middle">S</text><text x="180" y="64" text-anchor="middle">G  ('+f2(r.vgs)+' V)</text><text x="290" y="72" text-anchor="middle">D  ('+f2(r.vds)+' V)</text><text class="m" x="70" y="152" text-anchor="middle">n+</text><text class="m" x="290" y="152" text-anchor="middle">n+</text><text class="m" x="180" y="172" text-anchor="middle">p-type body</text>';
+$('.xs').innerHTML='<svg viewBox="0 52 360 140">'+s+'</svg><div class="cap">'+cap+'</div>';
+}
+function nline(r){
+var vm=Math.max(VDD,1.8,r.vds*1.05,r.vov*1.05),W=360,L=14,Rr=14,X=function(v){return L+v/vm*(W-L-Rr)},s='',b=Math.min(Math.max(r.vov,0),vm),i;
+if(r.vov<=0)s+='<rect x="'+L+'" y="26" width="'+(W-L-Rr)+'" height="20" fill="var(--cut)" stroke="#999"/><text x="'+(W/2)+'" y="40" text-anchor="middle">cutoff</text>';
+else s+='<rect x="'+L+'" y="26" width="'+(X(b)-L)+'" height="20" fill="var(--tri)" stroke="#999"/><rect x="'+X(b)+'" y="26" width="'+(W-Rr-X(b))+'" height="20" fill="var(--sat)" stroke="#999"/><text x="'+(L+(X(b)-L)/2)+'" y="40" text-anchor="middle">'+(X(b)-L>40?'triode':'')+'</text><text x="'+(X(b)+(W-Rr-X(b))/2)+'" y="40" text-anchor="middle">'+(W-Rr-X(b)>60?'saturation':'')+'</text><line x1="'+X(b)+'" y1="20" x2="'+X(b)+'" y2="52" stroke="#2b6cb0" stroke-width="2"/><text x="'+X(b)+'" y="14" text-anchor="middle" fill="#2b6cb0">Vov = '+f2(b)+' V</text>';
+for(i=0;i<=vm+1e-9;i+=0.5)s+='<text class="m" x="'+X(i)+'" y="76" text-anchor="middle">'+tf(i)+'</text>';
+s+='<path d="M'+X(Math.min(r.vds,vm)).toFixed(1)+',48 l-6,10 l12,0 z" fill="var(--acc)"/>';
+$('.nl').innerHTML='<svg viewBox="0 0 360 84">'+s+'</svg><div class="cap">the drain voltage V<sub>DS</sub> = '+f2(r.vds)+' V (red marker) against V<sub>ov</sub> (blue line): left of the line is triode</div>';
+}
+function upd(){
+root.querySelectorAll('[data-s]').forEach(function(e){var v=+e.value,k=e.dataset.s;if(['vth','k','w','l','lam'].indexOf(k)>=0)P[k]=v;else C[k]=v;var b=root.querySelector('[data-b="'+k+'"]');if(b)b.textContent=(k=='k'||k=='i'||k=='iref'||k=='m')?v:k=='w'?v.toFixed(1):v.toFixed(2)});
+var cs=CASES[cur],r=cs.solve(C),n=nm(),v=$('.verdict'),vov=r.vov,txt;
+var names={tri:'TRIODE',sat:'SATURATION',cut:'CUTOFF'},why={tri:'the channel still reaches the drain, so the transistor acts like a voltage-controlled <i>resistor</i>.',sat:'the channel is pinched off at the drain end, so the transistor acts like a <i>current source</i>.',cut:'the gate is not above the threshold, so there is no channel and no current.'};
+v.className='verdict v-'+r.reg;
+v.innerHTML='<b class="big">'+names[r.reg]+'</b> &nbsp; '+why[r.reg]+'<div>'+n.g+' = '+f2(r.vgs)+' V, '+n.t+' = '+f2(P.vth)+' V → V<sub>ov</sub> = '+f2(vov)+' V &nbsp;|&nbsp; '+n.d+' = '+f2(r.vds)+' V</div>'+(vov>0?'<div>test: is '+n.d+' &lt; V<sub>ov</sub>? &nbsp; '+f2(r.vds)+' '+(r.vds<vov?'&lt;':'≥')+' '+f2(vov)+' → <b>'+(r.vds<vov?'yes, triode':'no, saturation')+'</b></div><div>same test the other way: '+n.x+' = '+f2(r.vgs-r.vds)+' V '+(r.vgs-r.vds>P.vth?'&gt;':'≤')+' '+n.t+' = '+f2(P.vth)+' V → '+(r.vgs-r.vds>P.vth?'channel survives at the drain → triode':'no channel at the drain → saturation')+'</div>':'');
+xsec(r);nline(r);$('.plot').innerHTML=cs.plot(r,C);
+$('.hint').innerHTML=cs.hint(r,C).map(function(h){return '<div>'+h+'</div>'}).join('');
+}
+$('.cs').innerHTML=CASES.map(function(c,i){return '<option value="'+i+'">'+c.name+'</option>'}).join('');
+$('.adv').innerHTML=ADV.map(mk).join('');
+$('.cs').addEventListener('change',function(){cur=+this.value;build();upd()});
+$('.pol').addEventListener('change',function(){pm=this.value=='p';build();upd()});
+root.addEventListener('input',upd);
+build();upd();
+})();
+</script>
+</div>
