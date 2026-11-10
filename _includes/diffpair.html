@@ -1,0 +1,143 @@
+<div id="dpx">
+<style>
+#dpx{--fg:#1a1a1a;--mut:#6b6b6b;--line:#c9c9c9;--card:#f4f4f2;--bg:#fff;--ok:#d3ecd9;--tri:#d4e3f7;--off:#ececec;--acc:#c0392b;--blu:#2b6cb0;container-type:inline-size;margin:1.2em 0;padding:10px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+#dpx *{box-sizing:border-box}
+#dpx svg{width:100%;height:auto;display:block;margin:0}
+#dpx .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px 14px;margin:8px 0}
+#dpx label{display:block;font-size:.88em}
+#dpx input[type=range]{width:100%;margin:2px 0 0;padding:0}
+#dpx select{font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:3px 6px}
+#dpx details{margin:8px 0;font-size:.9em}
+#dpx summary{cursor:pointer;color:var(--mut)}
+#dpx .pills{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+#dpx .pill{border:1px solid var(--line);border-radius:6px;padding:4px 10px;font-size:.9em}
+#dpx .p-sat{background:var(--ok)}#dpx .p-tri{background:var(--tri)}#dpx .p-off{background:var(--off)}
+#dpx .read{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+#dpx .read span{border:1px solid var(--line);border-radius:4px;padding:2px 8px;background:var(--card);font-size:.88em}
+#dpx .bar{display:flex;height:26px;border:1px solid var(--fg);border-radius:4px;overflow:hidden;margin:6px 0;font-size:.82em}
+#dpx .bar div{display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden}
+#dpx .b1{background:#f1c7c2}#dpx .b2{background:#c9dcf3}
+#dpx .st{border-left:3px solid var(--line);padding:2px 0 2px 10px;margin:10px 0;font-size:.92em}
+#dpx .eq{font-family:Georgia,"Times New Roman",serif;background:var(--card);padding:4px 8px;border-radius:4px;margin:4px 0;overflow-x:auto}
+#dpx .num{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86em;color:#124b8c;margin:2px 0;overflow-x:auto}
+#dpx .hint{font-size:.9em;border-left:3px solid var(--acc);padding:2px 0 2px 10px;margin:10px 0}
+#dpx .hint div{margin:3px 0}
+#dpx .cap{font-size:.8em;color:var(--mut);margin:2px 0 6px}
+#dpx .note{font-size:.78em;color:var(--mut);margin-top:10px}
+#dpx dt{font-weight:600;margin-top:4px}#dpx dd{margin:0 0 0 14px}
+#dpx .gr{stroke:var(--line);stroke-width:.6}#dpx .ax{stroke:var(--fg);stroke-width:1.2}
+#dpx .s1{fill:none;stroke:var(--acc);stroke-width:2.6}#dpx .s2{fill:none;stroke:var(--blu);stroke-width:2.6}#dpx .sd{fill:none;stroke:var(--fg);stroke-width:1.1;stroke-dasharray:5 4}
+#dpx svg text{fill:var(--fg);font-family:inherit;font-size:11px}#dpx svg .m{fill:var(--mut);font-size:10px}
+</style>
+<div class="row sl"></div>
+<details><summary>more knobs: V<sub>th</sub>, k′, pair W/L, tail overdrive, R<sub>D</sub>, V<sub>DD</sub></summary><div class="row adv"></div></details>
+<div class="pills"></div>
+<div class="read"></div>
+<div class="cap">tail current split between the two input transistors (it always adds up to I<sub>tail</sub>):</div>
+<div class="bar"></div>
+<div class="p1"></div>
+<div class="cap">common-mode headroom: each line is the margin of one transistor before it leaves saturation (above zero is fine, below zero means triode).</div>
+<div class="p2"></div>
+<div class="hint"></div>
+<div>show the math: <select class="lv"><option value="1">words only</option><option value="2" selected>words + equations</option><option value="3">words + equations + your numbers</option></select></div>
+<div class="steps"></div>
+<details><summary>what do these symbols mean?</summary><dl>
+<dt>differential pair</dt><dd>two matched transistors whose sources are joined and fed by one current source, the tail. the circuit amplifies the <i>difference</i> between the two gate voltages.</dd>
+<dt>V<sub>id</sub>, V<sub>cm</sub></dt><dd>differential input V<sub>1</sub> − V<sub>2</sub> (the signal), and common-mode input (V<sub>1</sub> + V<sub>2</sub>)/2 (the average level both inputs sit at).</dd>
+<dt>I<sub>tail</sub></dt><dd>the fixed current of the tail source. it is shared: I<sub>1</sub> + I<sub>2</sub> = I<sub>tail</sub>.</dd>
+<dt>β = k′·W/L</dt><dd>the transistor’s strength: I<sub>D</sub> = ½·β·V<sub>ov</sub>² in saturation.</dd>
+<dt>ICMR</dt><dd>input common-mode range: the V<sub>cm</sub> values for which every transistor stays in saturation and the amplifier keeps its gain.</dd>
+<dt>V<sub>ov,tail</sub></dt><dd>the overdrive of the tail transistor. its drain (the pair’s common source node) must stay at least this high for the tail to remain a good current source.</dd>
+</dl></details>
+<div class="note">square-law model with λ = 0 for the pair, an ideal current-setting tail, resistor loads, and a differential input. the headroom lines assume the currents stay at the values set above; in a real circuit the current starts to collapse once something leaves saturation.</div>
+<script>
+(function(){
+var root=document.getElementById('dpx'),$=function(s){return root.querySelector(s)};
+var P={vth:.5,k:200,wl:20,vot:.2,rd:3,vdd:1.8},C={};
+var SL=[['vid','differential input V<sub>id</sub>',-.5,.5,.005,.1,'V'],['vcm','common-mode input V<sub>cm</sub>',0,1.8,.01,1.0,'V'],['it','tail current I<sub>tail</sub>',20,1000,5,200,'µA']];
+var AD=[['rd','load R<sub>D</sub>',.5,10,.1,3,'kΩ'],['vdd','supply V<sub>DD</sub>',1,3.3,.1,1.8,'V'],['vot','tail overdrive V<sub>ov,tail</sub>',.1,.6,.01,.2,'V'],['wl','pair W/L',2,100,1,20,''],['vth','V<sub>th</sub>',.2,.9,.01,.5,'V'],['k','k′',50,400,5,200,'µA/V²']];
+function mk(a){return '<label>'+a[1]+' = <b data-b="'+a[0]+'"></b> '+a[6]+'<input type="range" data-s="'+a[0]+'" min="'+a[2]+'" max="'+a[3]+'" step="'+a[4]+'" value="'+a[5]+'"></label>'}
+$('.sl').innerHTML=SL.map(mk).join('');$('.adv').innerHTML=AD.map(mk).join('');
+function st(t){return String(t).replace(/<sub>(.*?)<\/sub>/g,function(m,x){return x})}
+function f2(x){return x.toFixed(2)}
+function eng(x,u){var a=Math.abs(x),p=[[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n']],i;if(a==0)return '0 '+u;for(i=0;i<p.length;i++)if(a>=p[i][0]*0.9995)return (x/p[i][0]).toPrecision(3)+' '+p[i][1]+u;return x.toExponential(2)+' '+u}
+function nice(v){var e=Math.pow(10,Math.floor(Math.log10(v))),m=v/e,c=[1,2,2.5,5,10],i;for(i=0;i<c.length;i++)if(m<=c[i])return c[i]*e;return 10*e}
+function tf(v){return String(+v.toPrecision(2))}
+function split(vid,I,b){var vm=Math.sqrt(2*I/b),s,a,c;if(vid>=vm)return [I,0];if(vid<=-vm)return [0,I];s=Math.sqrt(2*I-b*vid*vid/2);a=(s+vid*Math.sqrt(b/2))/2;c=(s-vid*Math.sqrt(b/2))/2;return [a*a,c*c]}
+function calc(vid,vcm){
+var b=P.k*1e-6*P.wl,I=C.it*1e-6,sp=split(vid,I,b),I1=sp[0],I2=sp[1],V1=vcm+vid/2,V2=vcm-vid/2;
+var vov1=Math.sqrt(2*I1/b),vov2=Math.sqrt(2*I2/b),on1=I1>=I2,Vs=on1?V1-P.vth-vov1:V2-P.vth-vov2,ds=Vs-vcm;
+var Vd1=P.vdd-I1*P.rd*1e3,Vd2=P.vdd-I2*P.rd*1e3;
+var m1=Vd1-(V1-P.vth),m2=Vd2-(V2-P.vth),mt=Vs-P.vot;
+function rg(I_,m,V){return I_<=1e-12||V-Vs-P.vth<=0?'off':(m<0?'tri':'sat')}
+return {b:b,I:I,I1:I1,I2:I2,vm:Math.sqrt(2*I/b),V1:V1,V2:V2,Vs:Vs,ds:ds,Vd1:Vd1,Vd2:Vd2,m1:m1,m2:m2,mt:mt,r1:rg(I1,m1,V1),r2:rg(I2,m2,V2),rt:mt<0?'tri':'sat',vov1:vov1,vov2:vov2,
+gm:Math.sqrt(b*I),vod:(I1-I2)*P.rd*1e3};
+}
+function icmr(r,vid){var lo=P.vot-r.ds,hi=Math.min(P.vdd-r.I1*P.rd*1e3-vid/2+P.vth,P.vdd-r.I2*P.rd*1e3+vid/2+P.vth);return [lo,hi]}
+function plot(o){
+var W=600,H=290,L=58,R=14,T=14,B=40,xs=W-L-R,ys=H-T-B,s='',i,v;
+var X=function(a){return L+(a-o.x0)/(o.x1-o.x0)*xs},Y=function(a){return H-B-(a-o.y0)/(o.y1-o.y0)*ys};
+(o.bands||[]).forEach(function(b){var a=Math.max(b.a,o.x0),c=Math.min(b.b,o.x1);if(c>a){var w=X(c)-X(a);s+='<rect x="'+X(a)+'" y="'+T+'" width="'+w+'" height="'+ys+'" fill="var(--'+b.c+')"/>';if(w>60)s+='<text x="'+(X(a)+w/2)+'" y="'+(T+14)+'" text-anchor="middle">'+b.t+'</text>'}});
+o.xt.forEach(function(t){s+='<line class="gr" x1="'+X(t)+'" y1="'+T+'" x2="'+X(t)+'" y2="'+(H-B)+'"/><text class="m" x="'+X(t)+'" y="'+(H-B+14)+'" text-anchor="middle">'+tf(t)+'</text>'});
+o.yt.forEach(function(t){s+='<line class="gr" x1="'+L+'" y1="'+Y(t)+'" x2="'+(W-R)+'" y2="'+Y(t)+'"/><text class="m" x="'+(L-6)+'" y="'+(Y(t)+3)+'" text-anchor="end">'+tf(t*(o.ysc||1))+'</text>'});
+if(o.y0<0&&o.y1>0)s+='<line x1="'+L+'" y1="'+Y(0)+'" x2="'+(W-R)+'" y2="'+Y(0)+'" stroke="var(--fg)" stroke-width="1.6"/>';
+s+='<line class="ax" x1="'+L+'" y1="'+(H-B)+'" x2="'+(W-R)+'" y2="'+(H-B)+'"/><line class="ax" x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+(H-B)+'"/>';
+s+='<text x="'+(L+xs/2)+'" y="'+(H-6)+'" text-anchor="middle">'+st(o.xl)+'</text><text transform="translate(13,'+(T+ys/2)+') rotate(-90)" text-anchor="middle">'+st(o.yl)+'</text>';
+(o.vl||[]).forEach(function(q){s+='<line x1="'+X(q.x)+'" y1="'+T+'" x2="'+X(q.x)+'" y2="'+(H-B)+'" stroke="var(--fg)" stroke-dasharray="4 4"/><text class="m" x="'+(X(q.x)+3)+'" y="'+(H-B-6)+'">'+st(q.t)+'</text>'});
+o.series.forEach(function(se){s+='<path class="'+se.c+'" d="'+se.p.map(function(q,k){return (k?'L':'M')+X(q[0]).toFixed(1)+','+Y(q[1]).toFixed(1)}).join('')+'"/>'+(se.t?'<text class="m" x="'+(X(se.p[se.p.length-1][0])-4)+'" y="'+(Y(se.p[se.p.length-1][1])-5)+'" text-anchor="end" style="fill:'+(se.c=='s1'?'#c0392b':'#2b6cb0')+'">'+st(se.t)+'</text>':'')});
+(o.mk||[]).forEach(function(m){s+='<circle cx="'+X(m.x)+'" cy="'+Y(m.y)+'" r="5.5" fill="'+m.col+'" stroke="#fff" stroke-width="1.5"/>'});
+return '<svg viewBox="0 0 '+W+' '+H+'">'+s+'</svg>';
+}
+function pts(f,a,b,n){var o=[],i,x;for(i=0;i<=n;i++){x=a+(b-a)*i/n;o.push([x,f(x)])}return o}
+function draw(r){
+var vid=C.vid,vcm=C.vcm,ym=nice(r.I*1.1),us=ym>=1e-3?[1e3,'mA']:[1e6,'µA'],vx=Math.max(.5,r.vm*1.2),ytk=[],ys0=nice(ym/4),yq;for(yq=0;yq<=ym*1.0001;yq+=ys0)ytk.push(yq);
+$('.p1').innerHTML=plot({x0:-.5,x1:.5,y0:0,y1:ym,xt:[-.5,-.25,0,.25,.5],yt:ytk,ysc:us[0],xl:'differential input V<sub>id</sub> (V)',yl:'drain current ('+us[1]+')',
+bands:[{a:-.5,b:-r.vm,c:'off',t:'all current on side 2'},{a:r.vm,b:.5,c:'off',t:'all current on side 1'}],vl:[{x:r.vm,t:'+√(2I/β)'},{x:-r.vm,t:'−√(2I/β)'}],
+series:[{c:'s1',t:'I1',p:pts(function(v){return split(v,r.I,r.b)[0]},-.5,.5,120)},{c:'s2',t:'I2',p:pts(function(v){return split(v,r.I,r.b)[1]},-.5,.5,120)}],mk:[{x:vid,y:r.I1,col:'#c0392b'},{x:vid,y:r.I2,col:'#2b6cb0'}]});
+var ic=icmr(r,vid),lines=function(x){var q=calc(vid,x);return [q.mt,Math.min(q.m1,q.m2)]},a=lines(0),b=lines(P.vdd),all=[a[0],a[1],b[0],b[1]],lo=Math.min.apply(null,all.concat([-.2])),hi=Math.max.apply(null,all.concat([.2]));
+var yl=Math.floor(lo*2)/2,yh=Math.ceil(hi*2)/2,yt=[],t;for(t=yl;t<=yh+1e-9;t+=.5)yt.push(t);
+var cur=calc(vid,vcm);
+$('.p2').innerHTML=plot({x0:0,x1:P.vdd,y0:yl,y1:yh,xt:[0,.3,.6,.9,1.2,1.5,1.8,2.1,2.4,2.7,3,3.3].filter(function(q){return q<=P.vdd}),yt:yt,xl:'common-mode input V<sub>cm</sub> (V)',yl:'headroom margin (V)',
+bands:[{a:0,b:ic[0],c:'tri',t:'tail in triode'},{a:ic[0],b:ic[1],c:'ok',t:'input common-mode range'},{a:ic[1],b:P.vdd,c:'tri',t:'pair in triode'}],
+series:[{c:'s2',t:'tail: V<sub>s</sub> − V<sub>ov,tail</sub>',p:pts(function(x){return lines(x)[0]},0,P.vdd,40)},{c:'s1',t:'pair: V<sub>D</sub> − (V<sub>G</sub> − V<sub>th</sub>)',p:pts(function(x){return lines(x)[1]},0,P.vdd,40)}],
+mk:[{x:vcm,y:Math.min(cur.mt,Math.min(cur.m1,cur.m2)),col:'#1a1a1a'}]});
+return ic;
+}
+function pills(r){
+var nm={sat:'saturation',tri:'TRIODE',off:'off (no current)'};
+$('.pills').innerHTML=[['M1 (input 1)',r.r1],['M2 (input 2)',r.r2],['M<sub>tail</sub>',r.rt]].map(function(a){return '<span class="pill p-'+a[1]+'">'+a[0]+': <b>'+nm[a[1]]+'</b></span>'}).join('');
+}
+function read(r,ic){
+$('.read').innerHTML='<span>I<sub>1</sub> = '+eng(r.I1,'A')+'</span><span>I<sub>2</sub> = '+eng(r.I2,'A')+'</span><span>V<sub>s</sub> (tail node) = '+f2(r.Vs)+' V</span><span>output V<sub>od</sub> = V<sub>D2</sub> − V<sub>D1</sub> = '+(r.vod>=0?'':'−')+Math.abs(r.vod).toFixed(2)+' V</span><span>balanced gain g<sub>m</sub>R<sub>D</sub> = '+(r.gm*P.rd*1e3).toFixed(1)+'</span><span>ICMR ≈ '+f2(Math.max(ic[0],0))+' to '+f2(Math.min(ic[1],P.vdd))+' V</span>';
+var f=r.I1/r.I*100;
+$('.bar').innerHTML='<div class="b1" style="width:'+Math.max(f,0.01)+'%">'+(f>12?'I1 = '+f.toFixed(0)+' %':'')+'</div><div class="b2" style="width:'+Math.max(100-f,0.01)+'%">'+(100-f>12?'I2 = '+(100-f).toFixed(0)+' %':'')+'</div>';
+}
+function hint(r,ic){
+var h=[],vcm=C.vcm;
+if(vcm<ic[0])h.push('<b>V<sub>cm</sub> is too low.</b> the sources sit at V<sub>cm</sub> − V<sub>GS</sub>, so the tail node has fallen to '+f2(r.Vs)+' V, below the '+f2(P.vot)+' V the tail needs. the <b>tail transistor</b> enters triode and stops being a current source (the pair starves).');
+else if(vcm>ic[1])h.push('<b>V<sub>cm</sub> is too high.</b> the gates have risen faster than the drains can follow (the drains sit at V<sub>DD</sub> − I·R<sub>D</sub>), so an <b>input transistor</b> enters triode: its gain collapses.');
+else h.push('V<sub>cm</sub> is inside the input common-mode range ('+f2(Math.max(ic[0],0))+' to '+f2(Math.min(ic[1],P.vdd))+' V): the tail and both input transistors are saturated.');
+h.push('the two limits, in words: <b>low end</b> = V<sub>ov,tail</sub> + V<sub>GS</sub> (the tail needs head-room under the pair); <b>high end</b> = V<sub>DD</sub> − I·R<sub>D</sub> + V<sub>th</sub> (a gate may rise to one V<sub>th</sub> above its drain). make the range wider with a smaller R<sub>D</sub> or I<sub>tail</sub> (drains stay higher) or a larger pair W/L (smaller V<sub>GS</sub>).');
+if(Math.abs(C.vid)>=r.vm)h.push('|V<sub>id</sub>| ≥ '+f2(r.vm)+' V: one transistor takes <i>all</i> the tail current and the other turns off. the circuit has run out of linear range (that limit is √(2I<sub>tail</sub>/β) = '+f2(r.vm)+' V).');
+$('.hint').innerHTML=h.map(function(x){return '<div>'+x+'</div>'}).join('');
+}
+function steps(r,ic){
+var lv=+$('.lv').value,h='';
+function s(n,t,w,eq,nu){h+='<div class="st"><b>'+n+'. '+t+'</b><div>'+w+'</div>'+(lv>=2&&eq?'<div class="eq">'+eq+'</div>':'')+(lv>=3&&nu?'<div class="num">'+nu+'</div>':'')+'</div>'}
+s(1,'the tail current is shared','the two sources are joined and fed by one current source, so whatever one transistor takes, the other gives up. with the tail fixed, the pair can only <i>steer</i> the current.','I<sub>1</sub> + I<sub>2</sub> = I<sub>tail</sub>','I<sub>1</sub> + I<sub>2</sub> = '+eng(r.I1,'A')+' + '+eng(r.I2,'A')+' = '+eng(r.I,'A'));
+s(2,'a differential voltage steers it','each transistor needs V<sub>GS</sub> = V<sub>th</sub> + V<sub>ov</sub>, and both sources are the same node, so the gate voltages differ by exactly the difference of the two overdrives. with I = ½βV<sub>ov</sub>² that gives a square-root relation, solved for the currents below. small V<sub>id</sub> is nearly linear, then it saturates.','V<sub>id</sub> = V<sub>ov1</sub> − V<sub>ov2</sub> , V<sub>ov,i</sub> = √(2I<sub>i</sub>/β)<br>I<sub>1,2</sub> = ¼ ( √(2I<sub>tail</sub> − βV<sub>id</sub>²/2) ± V<sub>id</sub>√(β/2) )²','β = '+eng(r.b,'A/V²')+' , I<sub>tail</sub> = '+eng(r.I,'A')+' , V<sub>id</sub> = '+f2(C.vid)+' V → I<sub>1</sub> = '+eng(r.I1,'A')+' , I<sub>2</sub> = '+eng(r.I2,'A'));
+s(3,'the linear range ends when one side turns off','when one transistor carries the whole tail current the other has zero. that happens at a differential input of √(2·I<sub>tail</sub>/β). the same fact explains why a bigger V<sub>ov</sub> (smaller W/L or bigger I<sub>tail</sub>) gives a wider linear input range, at the price of lower gain.','|V<sub>id</sub>|<sub>max</sub> = √(2·I<sub>tail</sub>/β)','|V<sub>id</sub>|<sub>max</sub> = √(2·'+eng(r.I,'A')+' / '+eng(r.b,'A/V²')+') = '+f2(r.vm)+' V');
+s(4,'small-signal gain','near V<sub>id</sub> = 0 each transistor carries I<sub>tail</sub>/2, so g<sub>m</sub> = β·V<sub>ov</sub> = √(β·I<sub>tail</sub>). the output current difference flows through the load resistors, giving a gain of g<sub>m</sub>R<sub>D</sub> to the differential output.','g<sub>m</sub> = √(β·I<sub>tail</sub>) , A<sub>d</sub> = g<sub>m</sub>·R<sub>D</sub>','g<sub>m</sub> = '+eng(r.gm,'S')+' , A<sub>d</sub> = '+(r.gm*P.rd*1e3).toFixed(1));
+s(5,'the input common-mode range: where do the transistors go into triode?','two checks, both of the form “is V<sub>DS</sub> ≥ V<sub>ov</sub>?”. <b>tail:</b> the source node V<sub>s</sub> = V<sub>cm</sub> − V<sub>GS</sub> is the tail’s V<sub>DS</sub>, and it must stay above V<sub>ov,tail</sub>. <b>pair:</b> the drain, V<sub>DD</sub> − I·R<sub>D</sub>, must stay above V<sub>G</sub> − V<sub>th</sub> (the same “V<sub>D</sub> ≥ V<sub>G</sub> − V<sub>th</sub>” rule as for any transistor).','V<sub>cm,min</sub> = V<sub>ov,tail</sub> + V<sub>GS</sub> (tail check)<br>V<sub>cm,max</sub> = V<sub>DD</sub> − I·R<sub>D</sub> + V<sub>th</sub> (pair check)','V<sub>cm,min</sub> ≈ '+f2(ic[0])+' V , V<sub>cm,max</sub> ≈ '+f2(ic[1])+' V → ICMR = '+f2(Math.max(ic[0],0))+' to '+f2(Math.min(ic[1],P.vdd))+' V');
+$('.steps').innerHTML=h;
+}
+function upd(){
+root.querySelectorAll('[data-s]').forEach(function(e){var v=+e.value,k=e.dataset.s;if(k in P)P[k]=v;else C[k]=v;var b=root.querySelector('[data-b="'+k+'"]');if(b)b.textContent=(k=='it'||k=='wl'||k=='k')?v:v.toFixed(2)});
+root.querySelector('[data-s="vcm"]').max=P.vdd;
+var r=calc(C.vid,C.vcm),ic;pills(r);ic=draw(r);read(r,ic);hint(r,ic);steps(r,ic);
+}
+root.addEventListener('input',upd);root.addEventListener('change',upd);
+upd();
+})();
+</script>
+</div>

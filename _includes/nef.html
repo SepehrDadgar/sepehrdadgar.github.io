@@ -1,0 +1,163 @@
+<div id="nefx">
+<style>
+#nefx{--fg:#1a1a1a;--mut:#6b6b6b;--line:#c9c9c9;--card:#f4f4f2;--bg:#fff;--ok:#d3ecd9;--wn:#f7e8b5;--bd:#f6cdc9;--acc:#c0392b;--blu:#2b6cb0;container-type:inline-size;margin:1.2em 0;padding:10px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+#nefx *{box-sizing:border-box}
+#nefx svg{width:100%;height:auto;display:block;margin:0}
+#nefx .tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+#nefx button{font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:4px 12px;cursor:pointer;margin:0}
+#nefx button.on{background:var(--card);border-color:var(--fg);font-weight:600}
+#nefx .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px 14px;margin:8px 0}
+#nefx label{display:block;font-size:.88em}
+#nefx input[type=range]{width:100%;margin:2px 0 0;padding:0}
+#nefx select{font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:3px 6px}
+#nefx details{margin:8px 0;font-size:.9em}
+#nefx summary{cursor:pointer;color:var(--mut)}
+#nefx .big{border:1px solid var(--line);border-radius:6px;padding:8px 12px;margin:10px 0;background:var(--card)}
+#nefx .big b.n{font-size:1.5em}
+#nefx .read{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+#nefx .read span{border:1px solid var(--line);border-radius:4px;padding:2px 8px;background:var(--card);font-size:.88em}
+#nefx .st{border-left:3px solid var(--line);padding:2px 0 2px 10px;margin:10px 0;font-size:.92em}
+#nefx .eq{font-family:Georgia,"Times New Roman",serif;background:var(--card);padding:4px 8px;border-radius:4px;margin:4px 0;overflow-x:auto}
+#nefx .num{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86em;color:#124b8c;margin:2px 0;overflow-x:auto}
+#nefx .hint{font-size:.9em;border-left:3px solid var(--acc);padding:2px 0 2px 10px;margin:10px 0}
+#nefx .hint div{margin:3px 0}
+#nefx .cap{font-size:.8em;color:var(--mut);margin:2px 0 6px}
+#nefx .note{font-size:.78em;color:var(--mut);margin-top:10px}
+#nefx dt{font-weight:600;margin-top:4px}#nefx dd{margin:0 0 0 14px}
+#nefx .gr{stroke:var(--line);stroke-width:.6}#nefx .ax{stroke:var(--fg);stroke-width:1.2}
+#nefx .s1{fill:none;stroke:var(--acc);stroke-width:2.6}#nefx .s2{fill:none;stroke:var(--blu);stroke-width:2.6}#nefx .sd{fill:none;stroke:var(--fg);stroke-width:1.1;stroke-dasharray:5 4}
+#nefx svg text{fill:var(--fg);font-family:inherit;font-size:11px}#nefx svg .m{fill:var(--mut);font-size:10px}
+</style>
+<div class="tabs"><button class="on" data-t="calc">calculate NEF from my numbers</button><button data-t="pred">predict NEF of a diff pair</button></div>
+<div class="row"><div class="slT"></div></div>
+<div data-p="calc">
+<div class="row slc"></div>
+<div class="big"></div>
+<div class="read rc"></div>
+<div class="cap">where this sits (log scale):</div>
+<div class="scale"></div>
+</div>
+<div data-p="pred" style="display:none">
+<div class="row slp"></div>
+<div class="big bp"></div>
+<div class="read rp"></div>
+<div class="cap">NEF against g<sub>m</sub>/I<sub>D</sub> of the input pair (blue: thermal noise only, red: including flicker noise); the dashed line is the ideal bipolar reference NEF = 1:</div>
+<div class="p1"></div>
+<div class="cap">input-referred noise density against frequency; the shaded band is your signal band:</div>
+<div class="p2"></div>
+<div class="hint"></div>
+</div>
+<div>show the math: <select class="lv"><option value="1">words only</option><option value="2" selected>words + equations</option><option value="3">words + equations + your numbers</option></select></div>
+<div class="steps"></div>
+<details><summary>what do these symbols mean?</summary><dl>
+<dt>NEF (noise efficiency factor)</dt><dd>how many times more input noise (in rms volts) your amplifier has than an ideal single bipolar transistor stage that draws the same current and has the same bandwidth. NEF = 1 is that ideal reference; larger is worse.</dd>
+<dt>PEF (power efficiency factor)</dt><dd>NEF² · V<sub>DD</sub>: the same idea but charging you for supply voltage as well, since power = current × V<sub>DD</sub>.</dd>
+<dt>V<sub>ni,rms</sub></dt><dd>input-referred noise: the noise at the output divided by the gain, integrated over the signal bandwidth, as an rms voltage. it is what you could not tell apart from a real input signal.</dd>
+<dt>I<sub>tot</sub>, BW</dt><dd>total supply current of the amplifier (everything, not only the input pair) and its bandwidth in Hz.</dd>
+<dt>U<sub>T</sub></dt><dd>thermal voltage kT/q, about 26 mV at room temperature.</dd>
+<dt>γ</dt><dd>thermal-noise factor of a MOS transistor, about 0.65 to 0.7 in both weak and strong inversion.</dd>
+<dt>ε, x</dt><dd>ε: extra noise from the load and other devices, as a fraction of the input pair’s noise. x: extra supply current spent outside the input pair (bias, mirrors, common-mode feedback), as a fraction of the tail current.</dd>
+<dt>f<sub>c</sub></dt><dd>flicker (1/f) noise corner: the frequency below which 1/f noise exceeds the flat thermal noise. in biopotential bands (below 1 kHz) it often matters a lot.</dd>
+</dl></details>
+<div class="note">for a basic MOS differential pair the thermal-only limit is a NEF of about 2 (it needs weak inversion). reaching 1 or below takes tricks such as current reuse or switched-capacitor stages, and reported values around 1 are the state of the art. the predictor assumes first-order band edges (noise bandwidth π/2 × (f<sub>H</sub> − f<sub>L</sub>)) and integrates flicker noise as S·f<sub>c</sub>·ln(f<sub>H</sub>/f<sub>L</sub>); it is a quick estimate, not a replacement for a noise simulation.</div>
+<script>
+(function(){
+var root=document.getElementById('nefx'),$=function(s){return root.querySelector(s)};
+var KB=1.380649e-23,QE=1.602177e-19,C={},tab='calc';
+var SLC=[['vni','input-referred noise V<sub>ni,rms</sub>',.1,100,.01,5,'µV',1],['bw','bandwidth BW',1,1e5,.01,1e4,'Hz',1],['it','total current I<sub>tot</sub>',.05,100,.01,2,'µA',1],['vdd','supply V<sub>DD</sub>',.5,3.3,.05,1,'V',0]];
+var SLP=[['pit','tail current I<sub>tail</sub>',.1,100,.01,1,'µA',1],['g','input pair g<sub>m</sub>/I<sub>D</sub>',4,29,.1,22,'V⁻¹',0],['n','slope factor n',1.1,1.7,.01,1.35,'',0],['gam','γ',.5,1,.01,.67,'',0],['eps','load/other noise ε',0,1,.01,.3,'',0],['x','extra current x',0,1,.01,.25,'',0],['fl','f<sub>L</sub> (low edge)',.01,100,.01,.5,'Hz',1],['fh','f<sub>H</sub> (high edge)',10,1e5,.01,100,'Hz',1],['fc','flicker corner f<sub>c</sub>',0,1000,1,50,'Hz',0],['pvdd','supply V<sub>DD</sub>',.5,3.3,.05,1,'V',0]];
+var ST=[['temp','temperature',-40,125,1,27,'°C',0]];
+function mk(a){var lg=a[7],mn=lg?Math.log10(a[2]):a[2],mx=lg?Math.log10(a[3]):a[3],df=lg?Math.log10(a[5]):a[5],stp=lg?.01:a[4];return '<label>'+a[1]+' = <b data-b="'+a[0]+'"></b> '+a[6]+'<input type="range" data-s="'+a[0]+'" data-lg="'+lg+'" min="'+mn+'" max="'+mx+'" step="'+stp+'" value="'+df+'"></label>'}
+$('.slc').innerHTML=SLC.map(mk).join('');$('.slp').innerHTML=SLP.map(mk).join('');$('.slT').innerHTML=ST.map(mk).join('');
+function st(t){return String(t).replace(/<sub>(.*?)<\/sub>/g,function(m,x){return x})}
+function f2(x){return x.toFixed(2)}
+function eng(x,u){var a=Math.abs(x),p=[[1e9,'G'],[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n'],[1e-12,'p']],i;if(a==0)return '0 '+u;for(i=0;i<p.length;i++)if(a>=p[i][0]*0.9995)return (x/p[i][0]).toPrecision(3)+' '+p[i][1]+u;return x.toExponential(2)+' '+u}
+function nice(v){var e=Math.pow(10,Math.floor(Math.log10(v))),m=v/e,c=[1,2,2.5,5,10],i;for(i=0;i<c.length;i++)if(m<=c[i])return c[i]*e;return 10*e}
+function tf(v){return String(+v.toPrecision(2))}
+function consts(){var T=C.temp+273.15;return {T:T,kT:KB*T,UT:KB*T/QE}}
+function nefCalc(){var c=consts(),vni=C.vni*1e-6,nef=vni*Math.sqrt(2*C.it*1e-6/(Math.PI*c.UT*4*c.kT*C.bw));return {nef:nef,pef:nef*nef*C.vdd,pw:C.it*1e-6*C.vdd,den:vni/Math.sqrt(C.bw),ideal:Math.sqrt(Math.PI*c.UT*4*c.kT*C.bw/(2*C.it*1e-6)),c:c}}
+function gmax(){var c=consts();return 1/(C.n*c.UT)}
+function pred(g){
+var c=consts(),gm=g*C.pit*1e-6/2,S=8*c.kT*C.gam*(1+C.eps)/gm,bw=C.fh-C.fl,itot=(1+C.x)*C.pit*1e-6;
+var vth2=S*Math.PI/2*bw,vfl2=S*C.fc*Math.log(C.fh/C.fl),k2=2*itot/(Math.PI*c.UT*4*c.kT*bw);
+return {gm:gm,S:S,bw:bw,itot:itot,vth:Math.sqrt(vth2),vfl:Math.sqrt(vfl2),vni:Math.sqrt(vth2+vfl2),nth:Math.sqrt(vth2*k2),nef:Math.sqrt((vth2+vfl2)*k2),c:c};
+}
+function plot(o){
+var W=600,H=280,L=58,R=14,T=14,B=40,xs=W-L-R,ys=H-T-B,s='';
+var lg=Math.log10,X=function(a){return L+(o.xlog?(lg(a)-lg(o.x0))/(lg(o.x1)-lg(o.x0)):(a-o.x0)/(o.x1-o.x0))*xs},Y=function(a){return H-B-(o.ylog?(lg(a)-lg(o.y0))/(lg(o.y1)-lg(o.y0)):(a-o.y0)/(o.y1-o.y0))*ys};
+(o.bands||[]).forEach(function(b){var a=Math.max(X(b.a),L),c=Math.min(X(b.b),L+xs);if(c>a){s+='<rect x="'+a+'" y="'+T+'" width="'+(c-a)+'" height="'+ys+'" fill="'+b.f+'" fill-opacity=".5"/>';if(c-a>50)s+='<text x="'+((a+c)/2)+'" y="'+(T+14)+'" text-anchor="middle">'+b.t+'</text>'}});
+o.xt.forEach(function(t){s+='<line class="gr" x1="'+X(t)+'" y1="'+T+'" x2="'+X(t)+'" y2="'+(H-B)+'"/><text class="m" x="'+X(t)+'" y="'+(H-B+14)+'" text-anchor="middle">'+tf(t)+'</text>'});
+o.yt.forEach(function(t){s+='<line class="gr" x1="'+L+'" y1="'+Y(t)+'" x2="'+(W-R)+'" y2="'+Y(t)+'"/><text class="m" x="'+(L-6)+'" y="'+(Y(t)+3)+'" text-anchor="end">'+tf(t)+'</text>'});
+s+='<line class="ax" x1="'+L+'" y1="'+(H-B)+'" x2="'+(W-R)+'" y2="'+(H-B)+'"/><line class="ax" x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+(H-B)+'"/>';
+s+='<text x="'+(L+xs/2)+'" y="'+(H-6)+'" text-anchor="middle">'+st(o.xl)+'</text><text transform="translate(13,'+(T+ys/2)+') rotate(-90)" text-anchor="middle">'+st(o.yl)+'</text>';
+o.series.forEach(function(se){s+='<path class="'+se.c+'" d="'+se.p.map(function(q,k){return (k?'L':'M')+X(q[0]).toFixed(1)+','+Y(Math.min(Math.max(q[1],o.y0),o.y1)).toFixed(1)}).join('')+'"/>'+(se.t?'<text class="m" x="'+(X(se.p[se.p.length-1][0])-4)+'" y="'+(Y(Math.min(Math.max(se.p[se.p.length-1][1],o.y0),o.y1))-5)+'" text-anchor="end">'+st(se.t)+'</text>':'')});
+(o.mk||[]).forEach(function(m){s+='<circle cx="'+X(m.x)+'" cy="'+Y(m.y)+'" r="5.5" fill="'+m.col+'" stroke="#fff" stroke-width="1.5"/>'});
+return '<svg viewBox="0 0 '+W+' '+H+'">'+s+'</svg>';
+}
+function pts(f,a,b,n,lg){var o=[],i,x;for(i=0;i<=n;i++){x=lg?a*Math.pow(b/a,i/n):a+(b-a)*i/n;o.push([x,f(x)])}return o}
+function scale(nef){
+var W=600,L=20,R=20,X=function(v){return L+(Math.log10(v)-Math.log10(.5))/(Math.log10(30)-Math.log10(.5))*(W-L-R)},s='',z=[[.5,1,'ok','better than ideal'],[1,2.05,'ok','excellent'],[2.05,5,'wn','typical mos'],[5,30,'bd','high']];
+z.forEach(function(q){s+='<rect x="'+X(q[0])+'" y="22" width="'+(X(q[1])-X(q[0]))+'" height="26" fill="var(--'+q[2]+')" stroke="#999"/><text x="'+((X(q[0])+X(q[1]))/2)+'" y="39" text-anchor="middle">'+q[3]+'</text>'});
+[[1,'1 ideal bjt'],[2,'2 mos pair limit'],[5,'5'],[10,'10'],[20,'20']].forEach(function(t){s+='<line x1="'+X(t[0])+'" y1="48" x2="'+X(t[0])+'" y2="55" stroke="#1a1a1a"/><text class="m" x="'+X(t[0])+'" y="67" text-anchor="middle">'+t[1]+'</text>'});
+var v=Math.min(Math.max(nef,.5),30);s+='<path d="M'+X(v)+',20 l-7,-12 l14,0 z" fill="var(--acc)"/>';
+return '<svg viewBox="0 0 '+W+' 76">'+s+'</svg>';
+}
+function verdict(n){return n<1?'better than the ideal single-bjt reference: this normally needs current reuse or switched-capacitor tricks, so double-check the numbers.':n<2.05?'excellent: at or below what a plain MOS differential pair can reach.':n<5?'typical for a MOS front-end.':'high: the amplifier spends its current inefficiently (flicker noise, strong inversion, or lots of current outside the input pair).'}
+function doCalc(){
+var r=nefCalc();
+$('.big').innerHTML='NEF = <b class="n">'+r.nef.toFixed(2)+'</b> &nbsp; PEF = NEF²·V<sub>DD</sub> = <b>'+r.pef.toFixed(2)+'</b><div style="font-size:.9em;margin-top:4px">your amplifier has '+r.nef.toFixed(2)+' × the input noise of an ideal bipolar stage that draws the same '+eng(C.it*1e-6,'A')+' over the same '+eng(C.bw,'Hz')+'. '+verdict(r.nef)+'</div>';
+$('.rc').innerHTML='<span>power = I<sub>tot</sub>·V<sub>DD</sub> = '+eng(r.pw,'W')+'</span><span>average noise density ≈ '+eng(r.den,'V/√Hz')+'</span><span>ideal-reference noise (NEF = 1): '+eng(r.ideal,'Vrms')+'</span><span>U<sub>T</sub> = '+(r.c.UT*1000).toFixed(2)+' mV</span>';
+$('.scale').innerHTML=scale(r.nef);
+steps(r,null);
+}
+function doPred(){
+var gx=gmax(),g=Math.min(C.g,gx*0.9995),r=pred(g),fx=r.c;
+if(C.fh<=C.fl*1.01){$('.big.bp').innerHTML='set f<sub>H</sub> above f<sub>L</sub>.';return}
+var wi=Math.sqrt(4*C.gam*C.n*(1+C.eps)*(1+C.x));
+$('.big.bp').innerHTML='NEF = <b class="n">'+r.nef.toFixed(2)+'</b> &nbsp; (thermal noise only: '+r.nth.toFixed(2)+') &nbsp; PEF = <b>'+(r.nef*r.nef*C.pvdd).toFixed(2)+'</b><div style="font-size:.9em;margin-top:4px">'+verdict(r.nef)+'</div>';
+$('.rp').innerHTML='<span>g<sub>m</sub> per input device = '+eng(r.gm,'S')+'</span><span>thermal density ≈ '+eng(Math.sqrt(r.S),'V/√Hz')+'</span><span>V<sub>ni</sub> over the band = '+eng(r.vni,'Vrms')+'</span><span>I<sub>tot</sub> = '+eng(r.itot,'A')+'</span><span>weak-inversion limit for these n, γ, ε, x: NEF ≥ '+wi.toFixed(2)+'</span><span>g<sub>m</sub>/I<sub>D</sub> max = 1/(n·U<sub>T</sub>) = '+gx.toFixed(1)+'</span>';
+var gs=Math.min(gx*0.999,29),ymax=nice(Math.max(pred(4).nef,3)*1.05);
+$('.p1').innerHTML=plot({x0:4,x1:gs,y0:0,y1:ymax,xt:[4,8,12,16,20,24,28].filter(function(t){return t<=gs}),yt:(function(){var o=[],st=nice(ymax/5),v;for(v=0;v<=ymax*1.0001;v+=st)o.push(v);return o})(),xl:'g<sub>m</sub>/I<sub>D</sub> of the input pair (1/V)',yl:'NEF',
+series:[{c:'sd',p:[[4,1],[gs,1]],t:'ideal bjt = 1'},{c:'s2',p:pts(function(q){return pred(q).nth},4,gs,60)},{c:'s1',p:pts(function(q){return pred(q).nef},4,gs,60)}],mk:[{x:g,y:r.nth,col:'#2b6cb0'},{x:g,y:r.nef,col:'#c0392b'}]});
+var sd=Math.sqrt(r.S)*1e9,hi=sd*Math.sqrt(1+C.fc/0.01),y0=Math.pow(10,Math.floor(Math.log10(sd/1.5))),y1=Math.pow(10,Math.ceil(Math.log10(Math.max(hi,sd*1.5)))),yt=[],t;
+for(t=y0;t<=y1*1.001;t*=10)yt.push(t);
+$('.p2').innerHTML=plot({xlog:true,ylog:true,x0:.01,x1:1e5,y0:y0,y1:y1,xt:[.01,.1,1,10,100,1000,1e4,1e5],yt:yt,xl:'frequency (Hz)',yl:'input noise density (nV/√Hz)',
+bands:[{a:C.fl,b:C.fh,f:'#d3ecd9',t:'signal band'}],
+series:[{c:'sd',p:[[.01,sd],[1e5,sd]],t:'thermal floor'},{c:'s1',p:pts(function(f){return sd*Math.sqrt(1+C.fc/f)},.01,1e5,100,true)}]});
+var h=[];
+h.push('look at the two curves: the gap between blue and red is the price of flicker noise. it depends on how large f<sub>c</sub> is compared with the signal band, so for slow signals like ecg a big input pair (low f<sub>c</sub>) or chopping is as important as the bias point.');
+h.push('raising g<sub>m</sub>/I<sub>D</sub> lowers NEF but flattens out at the weak-inversion limit '+wi.toFixed(2)+' (set by n, γ and the overheads), which for a plain MOS pair ends up near 2. shrinking ε and x (a quieter load, less wasted current) is the other lever.');
+$('.hint').innerHTML=h.map(function(x){return '<div>'+x+'</div>'}).join('');
+steps(r,g);
+}
+function steps(r,g){
+var lv=+$('.lv').value,h='';
+function s(n,t,w,eq,nu){h+='<div class="st"><b>'+n+'. '+t+'</b><div>'+w+'</div>'+(lv>=2&&eq?'<div class="eq">'+eq+'</div>':'')+(lv>=3&&nu?'<div class="num">'+nu+'</div>':'')+'</div>'}
+if(tab=='calc'){
+s(1,'what is being compared?','an amplifier’s noise can always be lowered by spending more current, so noise alone is not a fair score. the NEF asks: for the current you actually spent, how does your noise compare with the best a single bipolar transistor stage could do?',null,null);
+s(2,'the formula','take the input-referred rms noise, normalise it by the noise that an ideal stage would have for the same bandwidth and current. UT = kT/q.','NEF = V<sub>ni,rms</sub> · √( 2·I<sub>tot</sub> / ( π · U<sub>T</sub> · 4kT · BW ) )','NEF = '+eng(C.vni*1e-6,'V')+' · √( 2·'+eng(C.it*1e-6,'A')+' / ( π · '+(r.c.UT*1000).toFixed(2)+' mV · 4kT · '+eng(C.bw,'Hz')+' ) ) = '+r.nef.toFixed(3));
+s(3,'PEF: add the supply voltage','NEF ignores V<sub>DD</sub>. a design that gets a good NEF by using a high supply is not power efficient, so the power efficiency factor squares the NEF (noise power) and multiplies by V<sub>DD</sub>.','PEF = NEF² · V<sub>DD</sub>','PEF = '+r.nef.toFixed(3)+'² · '+f2(C.vdd)+' V = '+r.pef.toFixed(2));
+}else{
+var wi=Math.sqrt(4*C.gam*C.n*(1+C.eps)*(1+C.x));
+s(1,'the noise of the input pair','each input transistor makes thermal current noise 4kTγ·g<sub>m</sub>. referred to the input, one device gives 4kTγ/g<sub>m</sub>, the pair has two of them, and the load and other devices add a fraction ε on top.','S<sub>th</sub> = 8kTγ(1 + ε) / g<sub>m</sub> , g<sub>m</sub> = (g<sub>m</sub>/I<sub>D</sub>)·I<sub>tail</sub>/2','g<sub>m</sub> = '+g.toFixed(1)+' · '+eng(C.pit*1e-6,'A')+' / 2 = '+eng(r.gm,'S')+' → S<sub>th</sub> = '+eng(r.S,'V²/Hz')+' ('+eng(Math.sqrt(r.S),'V/√Hz')+')');
+s(2,'what the current costs','the amplifier draws the tail current plus whatever else it spends outside the pair (bias, mirrors, common-mode feedback): a fraction x extra.','I<sub>tot</sub> = (1 + x) · I<sub>tail</sub>','I<sub>tot</sub> = '+f2(1+C.x)+' · '+eng(C.pit*1e-6,'A')+' = '+eng(r.itot,'A'));
+s(3,'plugging into the NEF (thermal noise only)','a first-order band edge makes the noise bandwidth π/2 times the bandwidth, and the π cancels the one in the NEF definition. what is left depends only on how efficient the transistors are (g<sub>m</sub>/I<sub>D</sub>) and how little is wasted.','NEF<sub>th</sub>² = 4γ(1 + ε)(1 + x) / ( U<sub>T</sub> · g<sub>m</sub>/I<sub>D</sub> )','NEF<sub>th</sub> = √( 4·'+C.gam.toFixed(2)+'·'+f2(1+C.eps)+'·'+f2(1+C.x)+' / ('+(r.c.UT*1000).toFixed(2)+' mV · '+g.toFixed(1)+') ) = '+r.nth.toFixed(3));
+s(4,'the weak-inversion limit','the highest possible g<sub>m</sub>/I<sub>D</sub> is 1/(n·U<sub>T</sub>), reached in weak inversion. putting that in gives the floor of a MOS pair: it is above 1 because MOS transistors are less efficient than bipolars (n &gt; 1) and a pair has two noisy devices.','NEF<sub>min</sub> = √( 4γ · n · (1 + ε)(1 + x) )','NEF<sub>min</sub> = √( 4·'+C.gam.toFixed(2)+'·'+C.n.toFixed(2)+'·'+f2(1+C.eps)+'·'+f2(1+C.x)+' ) = '+wi.toFixed(3));
+s(5,'flicker noise adds more','below the corner f<sub>c</sub> the noise rises as 1/f. integrating over the band adds a term that grows with f<sub>c</sub> and with the width of the band in octaves, so it hurts most for slow signals.','V<sub>ni</sub>² = S<sub>th</sub>·( π/2·(f<sub>H</sub> − f<sub>L</sub>) + f<sub>c</sub>·ln(f<sub>H</sub>/f<sub>L</sub>) )','thermal part '+eng(r.vth,'Vrms')+', flicker part '+eng(r.vfl,'Vrms')+' → V<sub>ni</sub> = '+eng(r.vni,'Vrms')+' → NEF = '+r.nef.toFixed(3));
+}
+$('.steps').innerHTML=h;
+}
+function upd(){
+root.querySelectorAll('[data-s]').forEach(function(e){var v=+e.value,k=e.dataset.s;if(e.dataset.lg=='1')v=Math.pow(10,v);C[k]=v;var b=root.querySelector('[data-b="'+k+'"]');if(b)b.textContent=(e.dataset.lg=='1'||k=='fc')?(v>=100?Math.round(v):+v.toPrecision(3)):(k=='temp'?v:v.toFixed(2))});
+var gm=gmax();root.querySelector('[data-s="g"]').max=Math.floor(gm*10)/10;
+if(tab=='calc')doCalc();else doPred();
+}
+root.addEventListener('input',upd);root.addEventListener('change',upd);
+root.querySelectorAll('.tabs button').forEach(function(b){b.addEventListener('click',function(){
+tab=b.dataset.t;root.querySelectorAll('.tabs button').forEach(function(x){x.classList.toggle('on',x==b)});
+root.querySelectorAll('[data-p]').forEach(function(p){p.style.display=p.dataset.p==tab?'':'none'});upd();
+})});
+upd();
+})();
+</script>
+</div>

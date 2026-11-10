@@ -1,0 +1,113 @@
+<div id="gmid">
+<style>
+#gmid{--fg:#1a1a1a;--mut:#6b6b6b;--line:#c9c9c9;--card:#f4f4f2;--bg:#fff;--wk:#e3d6f3;--md:#d3ecd9;--sg:#f7dcbc;--acc:#c0392b;--blu:#2b6cb0;container-type:inline-size;margin:1.2em 0;padding:10px;background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:6px;font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+#gmid *{box-sizing:border-box}
+#gmid svg{width:100%;height:auto;display:block;margin:0}
+#gmid .read{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+#gmid .read span{border:1px solid var(--line);border-radius:4px;padding:2px 8px;background:var(--card);font-size:.88em}
+#gmid .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:8px 14px;margin:8px 0}
+#gmid label{display:block;font-size:.88em}
+#gmid input[type=range]{width:100%;margin:2px 0 0;padding:0}
+#gmid select{font:inherit;font-size:14px;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:3px 6px}
+#gmid details{margin:8px 0;font-size:.9em}
+#gmid summary{cursor:pointer;color:var(--mut)}
+#gmid .st{border-left:3px solid var(--line);padding:2px 0 2px 10px;margin:10px 0;font-size:.92em}
+#gmid .eq{font-family:Georgia,"Times New Roman",serif;background:var(--card);padding:4px 8px;border-radius:4px;margin:4px 0;overflow-x:auto}
+#gmid .num{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.86em;color:#124b8c;margin:2px 0;overflow-x:auto}
+#gmid .hint{font-size:.9em;border-left:3px solid var(--acc);padding:2px 0 2px 10px;margin:10px 0}
+#gmid .note{font-size:.78em;color:var(--mut);margin-top:10px}
+#gmid dt{font-weight:600;margin-top:4px}#gmid dd{margin:0 0 0 14px}
+#gmid .gr{stroke:var(--line);stroke-width:.6}#gmid .ax{stroke:var(--fg);stroke-width:1.2}
+#gmid .s1{fill:none;stroke:var(--acc);stroke-width:2.6}#gmid .s2{fill:none;stroke:var(--blu);stroke-width:2.6}
+#gmid svg text{fill:var(--fg);font-family:inherit;font-size:11px}#gmid svg .m{fill:var(--mut);font-size:10px}#gmid svg .tr{fill:var(--blu)}#gmid svg .tl{fill:var(--acc)}
+</style>
+<div class="row sl"></div>
+<details><summary>more knobs: n, k′, early voltage, C<sub>ox</sub></summary><div class="row adv"></div></details>
+<div class="read"></div>
+<div class="p1"></div>
+<div class="p2"></div>
+<div class="hint"></div>
+<div>show the math: <select class="lv"><option value="1">words only</option><option value="2" selected>words + equations</option><option value="3">words + equations + your numbers</option></select></div>
+<div class="steps"></div>
+<details><summary>what do these symbols mean?</summary><dl>
+<dt>g<sub>m</sub></dt><dd>transconductance: how many amps of drain current you gain per volt on the gate. it is the “gain knob” of a transistor.</dd>
+<dt>g<sub>m</sub>/I<sub>D</sub></dt><dd>transconductance efficiency: g<sub>m</sub> divided by the current you spend. its unit is 1/V. high means a lot of gain and low noise for little current.</dd>
+<dt>inversion coefficient IC</dt><dd>how strongly the channel is turned on, as the ratio of your current to a reference “specific current” I<sub>S</sub> of the same-shaped transistor. IC &lt; 0.1 is weak inversion (subthreshold), 0.1 to 10 is moderate, above 10 is strong inversion (the square-law region you meet in textbooks).</dd>
+<dt>U<sub>T</sub>, n</dt><dd>thermal voltage kT/q (about 26 mV at room temperature) and the subthreshold slope factor (about 1.2 to 1.5): how much gate voltage one e-fold of current costs in weak inversion is n·U<sub>T</sub>.</dd>
+<dt>V<sub>A</sub>, r<sub>o</sub></dt><dd>Early voltage and output resistance. a longer L gives a bigger V<sub>A</sub>, so a flatter I-V curve and more intrinsic gain.</dd>
+<dt>f<sub>T</sub></dt><dd>transit frequency: where the transistor’s current gain falls to 1, roughly g<sub>m</sub> divided by 2π times the gate capacitance. a rough measure of speed.</dd>
+</dl></details>
+<div class="note">this uses the smooth EKV-style model with textbook-typical 180 nm numbers. it is meant for intuition and first sizing; real devices differ (velocity saturation, parasitics, short-channel effects), so replace it with a lookup table from your own simulations when you design for real.</div>
+<script>
+(function(){
+var root=document.getElementById('gmid'),$=function(s){return root.querySelector(s)};
+var UT=0.02585,K={n:1.3,k:200,va:6,cox:8.5,cov:0.35},C={};
+var SL=[['g','g<sub>m</sub>/I<sub>D</sub>',4,28,.1,15,'V⁻¹'],['l','L',.18,2,.01,.36,'µm'],['i','bias current I<sub>D</sub>',1,1000,1,100,'µA']];
+var AD=[['n','slope factor n',1.1,1.7,.01,1.3,''],['k','k′ = µn·C<sub>ox</sub>',100,400,5,200,'µA/V²'],['va','Early voltage per length',2,12,.5,6,'V/µm'],['cox','C<sub>ox</sub>',4,14,.1,8.5,'fF/µm²']];
+function mk(a){return '<label>'+a[1]+' = <b data-b="'+a[0]+'"></b> '+a[6]+'<input type="range" data-s="'+a[0]+'" min="'+a[2]+'" max="'+a[3]+'" step="'+a[4]+'" value="'+a[5]+'"></label>'}
+$('.sl').innerHTML=SL.map(mk).join('');$('.adv').innerHTML=AD.map(mk).join('');
+function st(t){return String(t).replace(/<sub>(.*?)<\/sub>/g,function(m,x){return x})}
+function f2(x){return x.toFixed(2)}
+function eng(x,u){var a=Math.abs(x),p=[[1e9,'G'],[1e6,'M'],[1e3,'k'],[1,''],[1e-3,'m'],[1e-6,'µ'],[1e-9,'n']],i;if(a==0)return '0 '+u;for(i=0;i<p.length;i++)if(a>=p[i][0]*0.9995)return (x/p[i][0]).toPrecision(3)+' '+p[i][1]+u;return x.toExponential(2)+' '+u}
+function icOf(g){var y=2/(K.n*UT*g)-1;return Math.max((y*y-1)/4,1e-6)}
+function gOf(ic){return 1/(K.n*UT*(0.5+Math.sqrt(0.25+ic)))}
+function calc(){
+var gmax=1/(K.n*UT),g=Math.min(C.g,gmax*0.9995),ic=icOf(g),isq=2*K.n*K.k*1e-6*UT*UT,wl=C.i*1e-6/(ic*isq),w=wl*C.l;
+var gm=g*C.i*1e-6,va=K.va*C.l,ro=va/(C.i*1e-6),cgg=w*(2/3*C.l*K.cox+K.cov)*1e-15;
+return {g:g,gmax:gmax,ic:ic,isq:isq,wl:wl,w:w,dens:C.i/w,gm:gm,va:va,ro:ro,gain:gm*ro,cgg:cgg,ft:gm/(2*Math.PI*cgg),vs:2/g,reg:ic<0.1?'weak inversion':ic>10?'strong inversion':'moderate inversion'};
+}
+function nice(v){var e=Math.pow(10,Math.floor(Math.log10(v))),m=v/e,c=[1,2,2.5,5,10],i;for(i=0;i<c.length;i++)if(m<=c[i])return c[i]*e;return 10*e}
+function tf(v){return String(+v.toPrecision(2))}
+function plot(o){
+var W=600,H=290,L=58,R=o.y2?58:14,T=14,B=40,xs=W-L-R,ys=H-T-B,s='',i,v;
+var lg=Math.log10,X=function(a){return L+(o.xlog?(lg(a)-lg(o.x0))/(lg(o.x1)-lg(o.x0)):(a-o.x0)/(o.x1-o.x0))*xs},Y=function(a){return H-B-(a-o.y0)/(o.y1-o.y0)*ys},Y2=function(a){return H-B-(a-o.z0)/(o.z1-o.z0)*ys};
+(o.bands||[]).forEach(function(b){var x0=Math.max(X(b.a),L),x1=Math.min(X(b.b),L+xs);if(x1>x0){s+='<rect x="'+x0+'" y="'+T+'" width="'+(x1-x0)+'" height="'+ys+'" fill="var(--'+b.c+')"/>';if(x1-x0>50)s+='<text x="'+((x0+x1)/2)+'" y="'+(T+14)+'" text-anchor="middle">'+b.t+'</text>'}});
+o.xt.forEach(function(t){s+='<line class="gr" x1="'+X(t)+'" y1="'+T+'" x2="'+X(t)+'" y2="'+(H-B)+'"/><text class="m" x="'+X(t)+'" y="'+(H-B+14)+'" text-anchor="middle">'+tf(t)+'</text>'});
+o.yt.forEach(function(t){s+='<line class="gr" x1="'+L+'" y1="'+Y(t)+'" x2="'+(W-R)+'" y2="'+Y(t)+'"/><text class="m tl" x="'+(L-6)+'" y="'+(Y(t)+3)+'" text-anchor="end">'+tf(t)+'</text>'});
+if(o.y2)o.zt.forEach(function(t){s+='<text class="m tr" x="'+(W-R+6)+'" y="'+(Y2(t)+3)+'">'+tf(t)+'</text>'});
+s+='<line class="ax" x1="'+L+'" y1="'+(H-B)+'" x2="'+(W-R)+'" y2="'+(H-B)+'"/><line class="ax" x1="'+L+'" y1="'+T+'" x2="'+L+'" y2="'+(H-B)+'"/>';
+s+='<text x="'+(L+xs/2)+'" y="'+(H-6)+'" text-anchor="middle">'+st(o.xl)+'</text><text class="tl" transform="translate(13,'+(T+ys/2)+') rotate(-90)" text-anchor="middle">'+st(o.yl)+'</text>';
+if(o.y2)s+='<text class="tr" transform="translate('+(W-8)+','+(T+ys/2)+') rotate(90)" text-anchor="middle">'+st(o.zl)+'</text>';
+o.series.forEach(function(se){var f=se.sec?Y2:Y;s+='<path class="'+se.c+'" d="'+se.p.map(function(q,k){return (k?'L':'M')+X(q[0]).toFixed(1)+','+f(q[1]).toFixed(1)}).join('')+'"/>'});
+(o.mk||[]).forEach(function(m){var f=m.sec?Y2:Y,px=X(m.x),py=f(m.y);s+='<line x1="'+px+'" y1="'+py+'" x2="'+px+'" y2="'+(H-B)+'" stroke="'+m.col+'" stroke-dasharray="3 3"/><circle cx="'+px+'" cy="'+py+'" r="5.5" fill="'+m.col+'" stroke="#fff" stroke-width="1.5"/>'});
+return '<svg viewBox="0 0 '+W+' '+H+'">'+s+'</svg>';
+}
+function pts(f,a,b,n,lg){var o=[],i,x;for(i=0;i<=n;i++){x=lg?a*Math.pow(b/a,i/n):a+(b-a)*i/n;o.push([x,f(x)])}return o}
+function draw(r){
+var isq=r.isq*1e6/C.l,x0=0.01*isq,x1=100*isq,lx0=Math.floor(Math.log10(x0)),lx1=Math.ceil(Math.log10(x1)),xt=[],e,gm=r.gmax;
+for(e=lx0;e<=lx1;e++)xt.push(Math.pow(10,e));
+$('.p1').innerHTML=plot({xlog:true,x0:Math.pow(10,lx0),x1:Math.pow(10,lx1),y0:0,y1:Math.ceil(gm/5)*5,xt:xt,yt:[0,5,10,15,20,25,30].filter(function(t){return t<=Math.ceil(gm/5)*5}),xl:'current density I<sub>D</sub>/W (µA/µm)',yl:'g<sub>m</sub>/I<sub>D</sub> (1/V)',
+bands:[{a:Math.pow(10,lx0),b:0.1*isq,c:'wk',t:'weak'},{a:0.1*isq,b:10*isq,c:'md',t:'moderate'},{a:10*isq,b:Math.pow(10,lx1),c:'sg',t:'strong'}],
+series:[{c:'s1',p:pts(function(x){return gOf(x/isq)},x0,x1,120,true)}],mk:[{x:r.dens,y:r.g,col:'#c0392b'}]});
+var g0=4,gx=Math.floor(gm),f=function(g){var ic=icOf(g);return g*(ic*isq*1e-6/1)/(2*Math.PI*(2/3*C.l*K.cox+K.cov)*1e-15)*1e-9};
+var ymaxA=nice(gx*K.va*C.l*1.05),ymaxF=nice(Math.max(f(g0),1e-3)*1.05);
+var tk=function(m){var a=[],v;for(v=0;v<=m*1.0001;v+=m/5)a.push(v);return a};
+$('.p2').innerHTML=plot({x0:g0,x1:gx,y0:0,y1:ymaxA,z0:0,z1:ymaxF,y2:true,xt:[4,8,12,16,20,24,28].filter(function(t){return t<=gx}),yt:tk(ymaxA),zt:tk(ymaxF),xl:'g<sub>m</sub>/I<sub>D</sub> (1/V)',yl:'intrinsic gain g<sub>m</sub>r<sub>o</sub> (V/V)',zl:'f<sub>T</sub> (GHz)',
+series:[{c:'s1',p:pts(function(g){return g*K.va*C.l},g0,gx,60)},{c:'s2',sec:true,p:pts(f,g0,gx,60)}],mk:[{x:r.g,y:r.gain,col:'#c0392b'},{x:r.g,y:r.ft*1e-9,col:'#2b6cb0',sec:true}]});
+}
+function read(r){
+$('.read').innerHTML='<span>region: <b>'+r.reg+'</b> (IC = '+(r.ic<0.01?r.ic.toExponential(1):r.ic.toPrecision(3))+')</span><span>V* = 2/(g<sub>m</sub>/I<sub>D</sub>) = '+f2(r.vs)+' V</span><span>W = <b>'+r.w.toFixed(r.w<10?2:1)+' µm</b> (W/L = '+(r.wl<10?r.wl.toFixed(2):r.wl.toFixed(1))+')</span><span>g<sub>m</sub> = '+eng(r.gm,'S')+'</span><span>g<sub>m</sub>r<sub>o</sub> = '+r.gain.toFixed(1)+' ('+(20*Math.log10(r.gain)).toFixed(1)+' dB)</span><span>f<sub>T</sub> ≈ '+eng(r.ft,'Hz')+'</span>';
+}
+function hint(r){
+var g2=Math.min(r.g+5,r.gmax*0.99),ic2=icOf(g2),w2=C.i*1e-6/(ic2*r.isq)*C.l,ft2=g2*C.i*1e-6/(2*Math.PI*w2*(2/3*C.l*K.cox+K.cov)*1e-15);
+$('.hint').innerHTML='<div>the chart: the curve climbs as current density falls, then <b>flattens at 1/(n·U<sub>T</sub>) = '+r.gmax.toFixed(1)+' V⁻¹</b>. you cannot get more g<sub>m</sub>/I<sub>D</sub> than that, however wide you make the transistor.</div><div>trade-off: moving to g<sub>m</sub>/I<sub>D</sub> = '+g2.toFixed(1)+' would make the intrinsic gain '+(g2*r.va).toFixed(0)+' (up '+((g2/r.g-1)*100).toFixed(0)+' %), but f<sub>T</sub> falls to ≈ '+eng(ft2,'Hz')+' and W grows to '+w2.toFixed(w2<10?2:0)+' µm. high g<sub>m</sub>/I<sub>D</sub> buys gain, low noise and low power, and pays with area and speed.</div><div>design recipe: pick <b>L</b> for the gain you need, pick <b>g<sub>m</sub>/I<sub>D</sub></b> for the efficiency/speed balance, read the current density off the chart, then <b>W = I<sub>D</sub> / (I<sub>D</sub>/W)</b>.</div>';
+}
+function steps(r){
+var lv=+$('.lv').value,h='';
+function s(n,t,w,eq,nu){h+='<div class="st"><b>'+n+'. '+t+'</b><div>'+w+'</div>'+(lv>=2&&eq?'<div class="eq">'+eq+'</div>':'')+(lv>=3&&nu?'<div class="num">'+nu+'</div>':'')+'</div>'}
+s(1,'how much control do I get per microamp?','g<sub>m</sub> (transconductance) is how many amps of drain current change per volt on the gate. divide it by the current you are spending and you get g<sub>m</sub>/I<sub>D</sub>: gate control per unit of current. a high value means lots of gain and low noise for little power. in strong inversion it equals 2/V<sub>ov</sub>, so V* = 2/(g<sub>m</sub>/I<sub>D</sub>) is the “equivalent overdrive” even when the square law no longer applies.','g<sub>m</sub> = (g<sub>m</sub>/I<sub>D</sub>) · I<sub>D</sub> , V* = 2 / (g<sub>m</sub>/I<sub>D</sub>)','g<sub>m</sub> = '+r.g.toFixed(1)+' · '+C.i+' µA = '+eng(r.gm,'S')+' , V* = 2/'+r.g.toFixed(1)+' = '+f2(r.vs)+' V');
+s(2,'how hard is the channel driven? (inversion coefficient)','compare your current with a reference current I<sub>S</sub> that a transistor of the same W/L would carry at the boundary between weak and strong inversion. the ratio is the inversion coefficient IC. in weak inversion (small IC) current grows exponentially with V<sub>GS</sub>, so g<sub>m</sub>/I<sub>D</sub> reaches its maximum 1/(n·U<sub>T</sub>). in strong inversion it falls as 1/√IC.','IC = I<sub>D</sub> / I<sub>S</sub> , I<sub>S</sub> = 2·n·k′·U<sub>T</sub>²·(W/L)<br>g<sub>m</sub>/I<sub>D</sub> = 1 / ( n·U<sub>T</sub> · (½ + √(¼ + IC)) )','solving the second line for IC with g<sub>m</sub>/I<sub>D</sub> = '+r.g.toFixed(1)+': IC = '+(r.ic<0.01?r.ic.toExponential(2):r.ic.toFixed(2))+' → '+r.reg);
+s(3,'from g<sub>m</sub>/I<sub>D</sub> to a transistor size','a given IC fixes how much current each micron of width carries. the current per width scales as 1/L. so once you choose L and g<sub>m</sub>/I<sub>D</sub>, the width is just your current divided by that density.','I<sub>D</sub>/W = IC · 2·n·k′·U<sub>T</sub>² / L , W = I<sub>D</sub> / (I<sub>D</sub>/W)','I<sub>D</sub>/W = '+r.dens.toPrecision(3)+' µA/µm → W = '+C.i+' µA / '+r.dens.toPrecision(3)+' = '+r.w.toFixed(2)+' µm (W/L = '+r.wl.toFixed(1)+')');
+s(4,'what do I pay, and what do I get? (gain and speed)','the intrinsic gain g<sub>m</sub>r<sub>o</sub> is the most gain one transistor can give. r<sub>o</sub> = V<sub>A</sub>/I<sub>D</sub>, so g<sub>m</sub>r<sub>o</sub> = (g<sub>m</sub>/I<sub>D</sub>)·V<sub>A</sub>: more efficiency or a longer L both raise it. speed goes the other way: a wider transistor has more gate capacitance and the current density (and so g<sub>m</sub> per width) is lower, so f<sub>T</sub> drops as you move toward weak inversion.','g<sub>m</sub>r<sub>o</sub> = (g<sub>m</sub>/I<sub>D</sub>) · V<sub>A</sub> , V<sub>A</sub> ≈ V<sub>A</sub>′·L , f<sub>T</sub> ≈ g<sub>m</sub> / (2π·C<sub>gg</sub>)','V<sub>A</sub> = '+K.va+' · '+C.l+' = '+f2(r.va)+' V → g<sub>m</sub>r<sub>o</sub> = '+r.g.toFixed(1)+' · '+f2(r.va)+' = '+r.gain.toFixed(1)+' ; C<sub>gg</sub> ≈ '+eng(r.cgg,'F')+' → f<sub>T</sub> ≈ '+eng(r.ft,'Hz'));
+$('.steps').innerHTML=h;
+}
+function upd(){
+root.querySelectorAll('[data-s]').forEach(function(e){var v=+e.value,k=e.dataset.s;if(k in K)K[k]=v;else C[k]=v;var b=root.querySelector('[data-b="'+k+'"]');if(b)b.textContent=(k=='i'||k=='k')?v:(k=='g'?v.toFixed(1):v.toFixed(2))});
+var gx=1/(K.n*UT);root.querySelector('[data-s="g"]').max=Math.floor(gx*10)/10;
+var r=calc();read(r);draw(r);hint(r);steps(r);
+}
+root.addEventListener('input',upd);root.addEventListener('change',upd);
+upd();
+})();
+</script>
+</div>
