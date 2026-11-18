@@ -1,0 +1,775 @@
+<div class="kpc" id="kpc" tabindex="-1">
+<style>
+.kpc{--line:rgba(128,128,128,.38);--soft:rgba(128,128,128,.10);--hi:#f59e0b;color-scheme:light dark;box-sizing:border-box;max-width:1100px;margin:1.5em auto;padding:14px;border:1px solid var(--line);border-radius:12px;font-family:inherit;font-size:16px;line-height:1.45;color:inherit;text-align:left}
+.kpc *,.kpc *::before,.kpc *::after{box-sizing:border-box}
+.kpc p,.kpc section,.kpc details,.kpc summary,.kpc div,.kpc span{margin:0;padding:0;float:none;text-indent:0}
+.kpc [hidden]{display:none!important}
+.kpc label{display:inline-flex!important;align-items:center;gap:6px;margin:0;padding:0;font-size:.95rem;font-weight:400;width:auto}
+.kpc button,.kpc .btn,.kpc select,.kpc input[type=number]{font-family:inherit;font-size:.95rem;font-weight:400;line-height:1.2;min-height:38px;height:auto;width:auto;margin:0;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:inherit;cursor:pointer;box-shadow:none;text-transform:none;letter-spacing:normal;text-decoration:none}
+.kpc button,.kpc .btn{-webkit-appearance:none;appearance:none;display:inline-flex;align-items:center;justify-content:center}
+.kpc select,.kpc input[type=number]{background:Canvas;color:CanvasText}
+.kpc input[type=number]{width:5.2em;cursor:text}
+.kpc input[type=number].jump{width:4.6em}
+.kpc input[type=range]{width:120px;min-height:0;height:auto;margin:0;padding:0;border:0;background:none;accent-color:var(--hi)}
+.kpc input[type=checkbox]{width:1.1em;height:1.1em;margin:0;accent-color:var(--hi)}
+.kpc input[type=color]{width:2.6em;height:2.3em;min-height:0;padding:0;border:1px solid var(--line);border-radius:8px;background:transparent;cursor:pointer}
+.kpc button:hover,.kpc .btn:hover,.kpc select:hover{border-color:var(--hi)}
+.kpc button:focus-visible,.kpc .btn:focus-within,.kpc select:focus-visible,.kpc input:focus-visible,.kpc summary:focus-visible{outline:2px solid var(--hi);outline-offset:2px}
+.kpc button.pri,.kpc .tabs button.on{background:var(--hi);border-color:var(--hi);color:#111;font-weight:600}
+.kpc .tabs{display:flex;gap:6px;overflow-x:auto;margin:0 0 12px;padding:0 0 10px;border-bottom:1px solid var(--line)}
+.kpc .tabs button{flex:0 0 auto}
+.kpc .msg{min-height:0;margin:0 0 10px;font-size:.92rem}
+.kpc .msg:not(:empty){padding:8px 12px;border-left:3px solid var(--hi);background:var(--soft);border-radius:6px}
+.kpc .row{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin:0 0 10px}
+.kpc .bar{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.kpc .grp{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;padding:8px 10px;border:1px solid var(--line);border-radius:10px}
+.kpc .grp>b,.kpc .phead>b{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;opacity:.7}
+.kpc details.help{margin:0 0 10px;font-size:.92rem}
+.kpc summary{cursor:pointer;font-weight:600}
+.kpc .hint{margin:6px 0 0;line-height:1.5;opacity:.85;font-size:.92rem}
+.kpc .split{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+.kpc .pane{flex:1 1 360px;min-width:0}
+.kpc .phead{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin:0 0 8px}
+.kpc .phead>b{margin-right:auto}
+.kpc .wrap{border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:72vh;background:var(--soft);-webkit-overflow-scrolling:touch}
+.kpc canvas{display:block;max-width:none;margin:0;border:0;touch-action:none}
+.kpc #kpc-view{max-width:100%;height:auto}
+.kpc #kpc-knit{touch-action:auto}
+.kpc .big button{font-size:1.15rem;padding:12px 22px}
+.kpc .now{font-size:1.25rem;font-weight:700;min-width:8em}
+.kpc .cols{margin:8px 0 0;font-size:.95rem;line-height:1.5;word-break:break-word}
+@media (max-width:520px){.kpc{padding:10px}.kpc .pane{flex-basis:100%}.kpc .big button{flex:1}}
+</style>
+<div class="tabs"><button data-s="1">Scan card</button><button data-s="5">From picture</button><button data-s="2">Check &amp; fix</button><button data-s="3">Knit</button></div>
+<div class="msg" id="kpc-msg"></div>
+<section data-p="1">
+<div class="row"><label class="btn">Take or choose photo<input type="file" id="kpc-file" accept="image/*" hidden></label><button id="kpc-rot">Rotate 90°</button><label>Columns <input type="number" id="kpc-cols" value="24" min="1" max="60"></label><label>Rows <input type="number" id="kpc-rows" value="36" min="1" max="200"></label></div>
+<div class="row"><label>Holes look <select id="kpc-mode"><option value="dark">darker than the card</option><option value="light">lighter than the card</option></select></label><label>Sensitivity <input type="range" id="kpc-thr" min="-60" max="60" value="0"></label><label><input type="checkbox" id="kpc-comp" checked> Even out uneven lighting</label><label>Sample area <input type="range" id="kpc-area" min="10" max="50" value="35"></label></div>
+<details class="help"><summary>How this works</summary><p class="hint">First drag the blue square handles so the box fits around the card, keeping the background out but leaving a little card margin. The grid is then found inside the box. Each circle shows the area that is averaged for that cell (green = punched, red ring = not); resize it with Sample area. If the grid is off, slide it with the arrows or drag the orange handles (TL, TR, BR, BL) onto the corner cells. Your manual changes stay until you move the box or press Find grid again. The number of rows is taken from the photo; zoom in to check the grid.</p></details>
+<div class="row sh"><button id="kpc-auto">Find grid again</button>Slide grid: <button data-nd="-1,0" aria-label="Slide grid left">&#8592;</button><button data-nd="1,0" aria-label="Slide grid right">&#8594;</button><button data-nd="0,-1" aria-label="Slide grid up">&#8593;</button><button data-nd="0,1" aria-label="Slide grid down">&#8595;</button></div>
+<div class="row"><label>Zoom <input type="range" id="kpc-zoom" min="1" max="6" step="0.25" value="1"></label><button id="kpc-zfit">Fit</button><span class="hint" style="margin:0">When zoomed, drag the empty photo area to move around.</span></div>
+<div class="wrap" id="kpc-vw"><canvas id="kpc-view" width="10" height="10"></canvas></div>
+<div class="row" style="margin-top:10px"><button id="kpc-use" class="pri">Use this card</button><button id="kpc-blank">Start with a blank card</button></div>
+</section>
+<section data-p="5" hidden>
+<details class="help"><summary>How this works</summary><p class="hint">Turn any picture into a punch card. Each cell takes the average brightness of the part of the picture it covers, so fine detail blends instead of being skipped. Dark areas become holes. Dithering then guesses the in-between greys by mixing holes and blanks.</p></details>
+<div class="row"><label class="btn">Choose picture<input type="file" id="kpc-pfile" accept="image/*" hidden></label><label>Columns <input type="number" id="kpc-pcols" value="24" min="1" max="60"></label><label>Rows <input type="number" id="kpc-prows" value="36" min="1" max="200"></label><button id="kpc-pauto">Auto rows</button><label>Stitch height/width <input type="number" id="kpc-pst" value="0.75" min="0.3" max="2" step="0.05"></label></div>
+<div class="row"><label>Method <select id="kpc-pm"><option value="fs">Dithering (smooth shading)</option><option value="bayer">Ordered dots (regular texture)</option><option value="thr">Plain threshold (clean shapes)</option></select></label><label>Brightness <input type="range" id="kpc-pb" min="-100" max="100" value="0"></label><label>Contrast <input type="range" id="kpc-pc" min="20" max="300" value="100"></label><label>Smoothing <input type="range" id="kpc-ps" min="100" max="250" value="100"></label><label><input type="checkbox" id="kpc-pa" checked> Auto contrast</label><label><input type="checkbox" id="kpc-pi"> Invert</label><label>View <select class="kpc-style"><option value="card">Punch card</option><option value="grid">Grid</option></select></label></div>
+<div class="row" style="align-items:flex-start"><canvas id="kpc-pthumb" width="10" height="10" style="max-width:160px;height:auto;border:1px solid var(--line);border-radius:6px"></canvas><div class="wrap" style="flex:1;min-width:240px"><canvas id="kpc-pcard"></canvas></div></div>
+<div class="row" style="margin-top:10px"><button id="kpc-puse" class="pri">Use this card</button></div>
+</section>
+<section data-p="2" hidden>
+<details class="help"><summary>How this works</summary><details class="help"><summary>How this works</summary><p class="hint">Compare with your real card and tap or drag cells to fix them; the preview on the right updates as you edit. Arrow keys shift the whole card (it wraps around). To repeat a motif, draw it inside the dashed amber box at the top-left, set its size, pick a layout and press Repeat motif. Undo or Ctrl+Z steps back. In the preview, holes use colour B; the thick outline marks your card once and dashed lines show where it repeats.</p></details></details>
+<div class="bar">
+<div class="grp"><b>Edit</b><button id="kpc-fh">Flip left/right</button><button id="kpc-fv">Flip top/bottom</button><button id="kpc-inv">Invert</button><button id="kpc-clr">Clear</button><button id="kpc-undo">Undo</button></div>
+<div class="grp"><b>Shift</b><button data-sh="-1,0" aria-label="Shift up">&#8593;</button><button data-sh="1,0" aria-label="Shift down">&#8595;</button><button data-sh="0,-1" aria-label="Shift left">&#8592;</button><button data-sh="0,1" aria-label="Shift right">&#8594;</button></div>
+<div class="grp"><b>Rows</b><input type="number" class="jump" id="kpc-addn" value="1" min="1" max="100" aria-label="Number of rows"><button id="kpc-addt">Add above</button><button id="kpc-addb">Add below</button><button id="kpc-remt">Remove top</button><button id="kpc-remb">Remove bottom</button></div>
+<div class="grp"><b>Repeat</b><label>Motif width <input type="number" class="jump" id="kpc-mw" value="6" min="1" max="60"></label><label>height <input type="number" class="jump" id="kpc-mh" value="6" min="1" max="200"></label><label>Layout <select id="kpc-ml"><option value="straight">Straight</option><option value="brick">Brick (alternate rows shifted)</option><option value="drop">Half-drop (alternate columns shifted)</option><option value="mirror">Mirror (alternate tiles flipped)</option></select></label><label>Fill rows <input type="number" class="jump" id="kpc-mr" min="1" max="200" placeholder="same"></label><label><input type="checkbox" id="kpc-mshow" checked> Show motif</label><button id="kpc-mapply" class="pri">Repeat motif</button></div>
+<div class="grp"><b>Save</b><button id="kpc-dlc">Download card image</button><button id="kpc-exp">Export</button><label class="btn">Import<input type="file" id="kpc-imp" accept=".json,application/json" hidden></label></div>
+</div>
+<div class="split">
+<div class="pane"><div class="phead"><b>Card</b><label>View <select class="kpc-style"><option value="card">Punch card</option><option value="grid">Grid</option></select></label></div><div class="wrap"><canvas id="kpc-edit"></canvas></div></div>
+<div class="pane"><div class="phead"><b>Live preview</b><label>A <input type="color" id="kpc-ca" value="#1f3a5f" aria-label="Colour A"></label><label>B <input type="color" id="kpc-cb" value="#f1e3c4" aria-label="Colour B"></label><label>Down <select id="kpc-rep"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label><label>Across <select id="kpc-reph"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label><button id="kpc-per" class="pri" aria-pressed="true">Outline: on</button><button id="kpc-dlp">Download</button></div><div class="wrap"><canvas id="kpc-pv"></canvas></div></div>
+</div>
+<div class="row" style="margin-top:12px"><button id="kpc-go" class="pri">Start knitting</button></div>
+</section>
+<section data-p="3" hidden>
+<div class="row big"><button id="kpc-prev" aria-label="Previous row">&#8592; Prev</button><span class="now" id="kpc-now"></span><button id="kpc-next" class="pri" aria-label="Next row">Next &#8594;</button></div>
+<div class="row"><label>Go to row <input type="number" class="jump" id="kpc-jump" min="1" value="1"></label><label><input type="checkbox" id="kpc-focus"> Fade rows away from the current one</label><label><input type="checkbox" id="kpc-wake"> Keep screen on</label><label>View <select class="kpc-style"><option value="card">Punch card</option><option value="grid">Grid</option></select></label></div>
+<div class="wrap" id="kpc-scroll"><canvas id="kpc-knit"></canvas></div>
+<p class="cols" id="kpc-cols-txt"></p>
+<p class="hint">Click a row to jump to it. Arrow keys or space also work after you click the grid.</p>
+</section>
+<script>
+(function(){
+var root=document.getElementById('kpc');
+if(!root)return;
+var $=function(s){return root.querySelector(s)};
+var $$=function(s){return Array.prototype.slice.call(root.querySelectorAll(s))};
+var KEY='kpc-v1';
+var S={style:'card',cols:24,rows:36,grid:null,row:0,det:null,src:null,iw:0,ih:0,gray:null,corners:null,drag:-1,cell:20,lm:52,tm:22};
+var view=$('#kpc-view'),vx=view.getContext('2d');
+function msg(t){$('#kpc-msg').textContent=t||''}
+function save(){try{localStorage.setItem(KEY,JSON.stringify({cols:S.cols,rows:S.rows,grid:S.grid,row:S.row}))}catch(e){}}
+function blank(){var g=[];for(var r=0;r<S.rows;r++){g.push(new Array(S.cols).fill(0))}return g}
+function validGrid(o){return o&&Array.isArray(o.grid)&&o.grid.length>0&&Array.isArray(o.grid[0])&&o.grid[0].length>0}
+function setGrid(o){S.undo=[];S.grid=o.grid.map(function(r){return r.map(function(v){return v?1:0})});S.rows=S.grid.length;S.cols=S.grid[0].length;S.row=Math.max(0,Math.min(S.rows-1,o.row||0));$('#kpc-cols').value=S.cols;$('#kpc-rows').value=S.rows}
+function show(n){
+if(n>1&&n!=5&&!S.grid){msg('Load a photo or start a blank card first.');return}
+S.step=n;msg('');
+$$('[data-p]').forEach(function(e){e.hidden=e.getAttribute('data-p')!=n});
+$$('.tabs button').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-s')==n)});
+if(n==2)draw($('#kpc-edit'),'edit');
+if(n==5)genPic();
+if(n==3){draw($('#kpc-knit'),'knit');knitUI(true);root.focus()}
+}
+function redraw(){if(S.step==2)draw($('#kpc-edit'),'edit');if(S.step==3)draw($('#kpc-knit'),'knit');if(S.step==4)drawPrev();if(S.step==5)genPic()}
+function draw(cv,mode){
+var avail=(cv.parentNode.clientWidth||700)-4;
+var lm=S.lm,tm=S.tm;
+var cell=Math.max(10,Math.min(38,Math.floor((avail-lm)/S.cols)));
+var w=lm+S.cols*cell,h=tm+S.rows*cell,d=window.devicePixelRatio||1;
+S.cell=cell;
+cv.width=w*d;cv.height=h*d;cv.style.width=w+'px';cv.style.height=h+'px';
+var x=cv.getContext('2d');x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,w,h);
+var fs=Math.max(10,Math.round(cell*.4));
+x.font='600 '+fs+'px sans-serif';x.textBaseline='middle';
+var focus=$('#kpc-focus').checked;
+x.fillStyle='#888';x.textAlign='center';
+for(var c=0;c<S.cols;c++){x.fillText(c+1,lm+c*cell+cell/2,tm/2)}
+x.textAlign='right';
+for(var r=0;r<S.rows;r++){
+var a=1;
+if(mode=='knit'&&r!=S.row){if(r<S.row)a=.4;if(focus&&Math.abs(r-S.row)>2)a=.1}
+x.globalAlpha=a;
+for(c=0;c<S.cols;c++){
+var cx=lm+c*cell,cy=tm+r*cell,on=S.grid[r][c];
+if(S.style=='card'){
+x.fillStyle='#efe6cf';x.fillRect(cx,cy,cell,cell);
+x.strokeStyle='rgba(120,100,60,.2)';x.lineWidth=1;x.strokeRect(cx+.5,cy+.5,cell,cell);
+if(on){x.fillStyle='#2a2118';x.beginPath();x.arc(cx+cell/2,cy+cell/2,cell*.36,0,6.283);x.fill()}
+}else{
+x.fillStyle=on?'#1f2937':'#fff';x.fillRect(cx,cy,cell,cell);
+x.strokeStyle='#9ca3af';x.lineWidth=1;x.strokeRect(cx+.5,cy+.5,cell,cell);
+}
+}
+x.fillStyle=(mode=='knit'&&r==S.row)?'#b45309':'#888';
+x.fillText(r+1,lm-16,tm+r*cell+cell/2);
+}
+x.globalAlpha=1;
+x.strokeStyle='#6b7280';x.lineWidth=2;
+for(c=6;c<S.cols;c+=6){x.beginPath();x.moveTo(lm+c*cell,tm);x.lineTo(lm+c*cell,h);x.stroke()}
+if(mode=='edit'&&cv.id=='kpc-edit'&&$('#kpc-mshow').checked){
+var mw=Math.max(1,Math.min(S.cols,+$('#kpc-mw').value||1)),mh=Math.max(1,Math.min(S.rows,+$('#kpc-mh').value||1));
+x.setLineDash([6,4]);x.lineWidth=1;x.strokeStyle='rgba(245,158,11,.65)';
+for(c=mw;c<S.cols;c+=mw){x.beginPath();x.moveTo(lm+c*cell+.5,tm);x.lineTo(lm+c*cell+.5,h);x.stroke()}
+for(r=mh;r<S.rows;r+=mh){x.beginPath();x.moveTo(lm,tm+r*cell+.5);x.lineTo(w,tm+r*cell+.5);x.stroke()}
+x.setLineDash([]);x.lineWidth=3;x.strokeStyle='#f59e0b';x.strokeRect(lm+1.5,tm+1.5,mw*cell-3,mh*cell-3);
+}
+if(mode=='knit'){
+var y=tm+S.row*cell;
+x.fillStyle='rgba(245,158,11,.30)';x.fillRect(0,y,w,cell);
+x.strokeStyle='#f59e0b';x.lineWidth=3;x.strokeRect(1.5,y+1.5,w-3,cell-3);
+x.fillStyle='#f59e0b';x.beginPath();x.moveTo(3,y+cell*.2);x.lineTo(3,y+cell*.8);x.lineTo(14,y+cell/2);x.closePath();x.fill();
+}
+if(cv.id=='kpc-edit')drawPrev();
+}
+function knitUI(scroll){
+var holes=[];for(var c=0;c<S.cols;c++){if(S.grid[S.row][c])holes.push(c+1)}
+$('#kpc-now').textContent='Row '+(S.row+1)+' / '+S.rows;
+$('#kpc-jump').value=S.row+1;$('#kpc-jump').max=S.rows;
+$('#kpc-cols-txt').textContent='Punched columns ('+holes.length+'): '+(holes.length?holes.join(', '):'none');
+if(scroll){var sc=$('#kpc-scroll');var yy=S.tm+S.row*S.cell+S.cell/2;sc.scrollTo({top:Math.max(0,yy-sc.clientHeight/2),behavior:'smooth'})}
+}
+function go(d){S.row=Math.max(0,Math.min(S.rows-1,S.row+d));save();draw($('#kpc-knit'),'knit');knitUI(true)}
+function setRow(r){S.row=Math.max(0,Math.min(S.rows-1,r));save();draw($('#kpc-knit'),'knit');knitUI(true)}
+/* ---------- photo ---------- */
+function setSource(cv,keep){
+S.src=cv;S.iw=cv.width;S.ih=cv.height;
+var id=cv.getContext('2d').getImageData(0,0,S.iw,S.ih).data;
+S.gray=new Float32Array(S.iw*S.ih);
+for(var i=0,j=0;i<id.length;i+=4,j++){S.gray[j]=.299*id[i]+.587*id[i+1]+.114*id[i+2]}
+view.width=S.iw;view.height=S.ih;
+if(keep)return;
+var g=.06;
+S.reg={x0:S.iw*g,y0:S.ih*g,x1:S.iw*(1-g),y1:S.ih*(1-g)};
+S.zoom=1;view.style.width='';view.style.maxWidth='';$('#kpc-zoom').value=1;
+defCorners();S.manual=false;
+if(!autoGrid())update();
+}
+function defCorners(){
+var g=S.reg,w=g.x1-g.x0,h=g.y1-g.y0,m=.1;
+S.corners=[{x:g.x0+w*m,y:g.y0+h*m},{x:g.x1-w*m,y:g.y0+h*m},{x:g.x1-w*m,y:g.y1-h*m},{x:g.x0+w*m,y:g.y1-h*m}];
+}
+$('#kpc-file').addEventListener('change',function(){
+var f=this.files&&this.files[0];if(!f)return;
+var url=URL.createObjectURL(f),im=new Image();
+im.onload=function(){
+var sc=Math.min(1,1600/Math.max(im.width,im.height));
+var cv=document.createElement('canvas');cv.width=Math.round(im.width*sc);cv.height=Math.round(im.height*sc);
+cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
+URL.revokeObjectURL(url);setSource(cv);
+};
+im.onerror=function(){msg('Could not open that image.')};
+im.src=url;
+});
+function rot90(){
+var o=S.src,oh=S.ih,g=S.reg,cv=document.createElement('canvas');cv.width=o.height;cv.height=o.width;
+var x=cv.getContext('2d');x.translate(cv.width,0);x.rotate(Math.PI/2);x.drawImage(o,0,0);
+setSource(cv,true);
+S.reg={x0:oh-g.y1,y0:g.x0,x1:oh-g.y0,y1:g.x1};
+defCorners();S.manual=false;
+}
+$('#kpc-rot').addEventListener('click',function(){
+if(!S.src)return;
+rotAuto=true;rot90();if(!autoGrid())update();rotAuto=false;
+});
+/*AUTO-START*/
+function pj(H,i,j){var w=H.g*i+H.h*j+1;return[(H.a*i+H.b*j+H.c)/w,(H.d*i+H.e*j+H.f)/w]}
+function fitH(L){
+var M=[],v=[],r,c,k;
+for(r=0;r<8;r++){M.push(new Array(8).fill(0));v.push(0)}
+L.forEach(function(p){
+[[[p.i,p.j,1,0,0,0,-p.i*p.x,-p.j*p.x],p.x],[[0,0,0,p.i,p.j,1,-p.i*p.y,-p.j*p.y],p.y]].forEach(function(e){
+for(r=0;r<8;r++){v[r]+=e[0][r]*e[1];for(c=0;c<8;c++)M[r][c]+=e[0][r]*e[0][c]}
+});
+});
+for(k=0;k<8;k++){
+var pv=k;for(r=k+1;r<8;r++)if(Math.abs(M[r][k])>Math.abs(M[pv][k]))pv=r;
+if(Math.abs(M[pv][k])<1e-12)return null;
+var t=M[k];M[k]=M[pv];M[pv]=t;t=v[k];v[k]=v[pv];v[pv]=t;
+for(r=k+1;r<8;r++){var f=M[r][k]/M[k][k];for(c=k;c<8;c++)M[r][c]-=f*M[k][c];v[r]-=f*v[k]}
+}
+var h=new Array(8);
+for(r=7;r>=0;r--){var sm=v[r];for(c=r+1;c<8;c++)sm-=M[r][c]*h[c];h[r]=sm/M[r][r]}
+return{a:h[0],b:h[1],c:h[2],d:h[3],e:h[4],f:h[5],g:h[6],h:h[7]};
+}
+function detectGrid(gray,iw,ih,cols,rows,dark){
+var W1=iw+1,I=new Float64Array(W1*(ih+1)),x,y;
+for(y=0;y<ih;y++){var rs=0;for(x=0;x<iw;x++){rs+=gray[y*iw+x];I[(y+1)*W1+x+1]=I[y*W1+x+1]+rs}}
+var rad=Math.max(8,Math.round(iw*2/cols)),mask=new Uint8Array(iw*ih);
+for(y=0;y<ih;y++){
+var y0=Math.max(0,y-rad),y1=Math.min(ih,y+rad+1);
+for(x=0;x<iw;x++){
+var x0=Math.max(0,x-rad),x1=Math.min(iw,x+rad+1);
+var m=(I[y1*W1+x1]-I[y0*W1+x1]-I[y1*W1+x0]+I[y0*W1+x0])/((x1-x0)*(y1-y0)),g=gray[y*iw+x];
+mask[y*iw+x]=(dark?g<m*.88:g>m*1.12)?1:0;
+}
+}
+var lab=new Int32Array(iw*ih),st=new Int32Array(iw*ih),bl=[];
+for(var s=0;s<iw*ih;s++){
+if(!mask[s]||lab[s])continue;
+var id=bl.length+1,sp=0,n=0,sx=0,sy=0,mnx=iw,mxx=0,mny=ih,mxy=0,ed=false;
+st[sp++]=s;lab[s]=id;
+while(sp){
+var q=st[--sp],qx=q%iw,qy=(q-qx)/iw;
+n++;sx+=qx;sy+=qy;
+if(qx<mnx)mnx=qx;if(qx>mxx)mxx=qx;if(qy<mny)mny=qy;if(qy>mxy)mxy=qy;
+if(qx==0||qy==0||qx==iw-1||qy==ih-1)ed=true;
+if(qx>0&&mask[q-1]&&!lab[q-1]){lab[q-1]=id;st[sp++]=q-1}
+if(qx<iw-1&&mask[q+1]&&!lab[q+1]){lab[q+1]=id;st[sp++]=q+1}
+if(qy>0&&mask[q-iw]&&!lab[q-iw]){lab[q-iw]=id;st[sp++]=q-iw}
+if(qy<ih-1&&mask[q+iw]&&!lab[q+iw]){lab[q+iw]=id;st[sp++]=q+iw}
+}
+var bw=mxx-mnx+1,bh=mxy-mny+1;
+bl.push({n:n,x:sx/n,y:sy/n,ok:!ed&&n>=15&&n/(bw*bh)>.5&&bw/bh>.4&&bw/bh<2.5});
+}
+var P=bl.filter(function(b){return b.ok});
+if(P.length<8)return null;
+var ar=P.map(function(b){return b.n}).sort(function(a,b){return a-b}),med=ar[ar.length>>1];
+P=P.filter(function(b){return b.n>=.5*med&&b.n<=1.8*med});
+var np=P.length;if(np<8)return null;
+var nn=P.map(function(p,i){var d=1e9;P.forEach(function(q,j){if(i!=j){var e=Math.hypot(p.x-q.x,p.y-q.y);if(e<d)d=e}});return d}).sort(function(a,b){return a-b});
+var pitch=nn[np>>1];
+var A=[0,0,0],B=[0,0,0];
+P.forEach(function(p,i){P.forEach(function(q,j){
+if(i==j)return;
+var dx=q.x-p.x,dy=q.y-p.y,d=Math.hypot(dx,dy);
+if(d<.7*pitch||d>1.35*pitch)return;
+var an=Math.atan2(dy,dx)*57.2958;
+if(Math.abs(an)<35){A[0]+=dx;A[1]+=dy;A[2]++}
+else if(Math.abs(an)>145){A[0]-=dx;A[1]-=dy;A[2]++}
+else if(an>55&&an<125){B[0]+=dx;B[1]+=dy;B[2]++}
+else if(an<-55&&an>-125){B[0]-=dx;B[1]-=dy;B[2]++}
+})});
+if(!A[2]||!B[2])return null;
+var a0=[A[0]/A[2],A[1]/A[2]],b0=[B[0]/B[2],B[1]/B[2]];
+var tol=.3*Math.min(Math.hypot(a0[0],a0[1]),Math.hypot(b0[0],b0[1]));
+var cs=pitch,hs={};
+P.forEach(function(q,j){var kk=Math.floor(q.x/cs)+','+Math.floor(q.y/cs);(hs[kk]=hs[kk]||[]).push(j)});
+function near(px,py,r){
+var bx=Math.floor(px/cs),by=Math.floor(py/cs),best=-1,b=r*r;
+for(var dx=-1;dx<=1;dx++)for(var dy=-1;dy<=1;dy++){
+var l=hs[(bx+dx)+','+(by+dy)];if(!l)continue;
+for(var t=0;t<l.length;t++){var q=P[l[t]],e=(q.x-px)*(q.x-px)+(q.y-py)*(q.y-py);if(e<b){b=e;best=l[t]}}
+}
+return best;
+}
+var sd=0,bd=1e9;
+P.forEach(function(p,i){var e=Math.hypot(p.x-iw/2,p.y-ih/2);if(e<bd){bd=e;sd=i}});
+var asg=new Array(np).fill(null);asg[sd]={i:0,j:0,a:a0,b:b0};
+var qu=[sd],offs=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1],[2,0],[-2,0],[0,2],[0,-2],[2,1],[2,-1],[-2,1],[-2,-1],[1,2],[1,-2],[-1,2],[-1,-2],[2,2],[2,-2],[-2,2],[-2,-2],[3,0],[-3,0],[0,3],[0,-3]];
+while(qu.length){
+var k=qu.shift(),p=P[k],Q=asg[k];
+offs.forEach(function(o){
+var px=p.x+o[0]*Q.a[0]+o[1]*Q.b[0],py=p.y+o[0]*Q.a[1]+o[1]*Q.b[1],best=-1,b2=tol;
+best=near(px,py,tol);
+if(best<0||asg[best])return;
+var q=P[best],na=Q.a,nb=Q.b;
+if(o[1]==0)na=[(q.x-p.x)/o[0],(q.y-p.y)/o[0]];
+else if(o[0]==0)nb=[(q.x-p.x)/o[1],(q.y-p.y)/o[1]];
+asg[best]={i:Q.i+o[0],j:Q.j+o[1],a:na,b:nb};qu.push(best);
+});
+}
+var L=[];
+asg.forEach(function(z,i){if(z)L.push({i:z.i,j:z.j,x:P[i].x,y:P[i].y})});
+if(L.length<8)return null;
+var got=asg.map(function(z){return!!z});
+for(var gr=0;gr<6;gr++){
+var Hg=fitH(L);if(!Hg)break;
+var gi0=1e9,gi1=-1e9,gj0=1e9,gj1=-1e9,add=0,used={};
+L.forEach(function(z){gi0=Math.min(gi0,z.i);gi1=Math.max(gi1,z.i);gj0=Math.min(gj0,z.j);gj1=Math.max(gj1,z.j);used[z.i+','+z.j]=1});
+for(var kq=0;kq<np;kq++){
+if(got[kq])continue;
+var bi=0,bj=0,bb=1e18;
+for(var ii=gi0-8;ii<=gi1+8;ii++)for(var jj=gj0-8;jj<=gj1+8;jj++){
+var r2=pj(Hg,ii,jj),e2=(r2[0]-P[kq].x)*(r2[0]-P[kq].x)+(r2[1]-P[kq].y)*(r2[1]-P[kq].y);
+if(e2<bb){bb=e2;bi=ii;bj=jj}
+}
+if(bb<.05*pitch*pitch&&!used[bi+','+bj]){used[bi+','+bj]=1;got[kq]=true;L.push({i:bi,j:bj,x:P[kq].x,y:P[kq].y});add++}
+}
+if(!add)break;
+}
+var H=null,it;
+for(it=0;it<3;it++){
+H=fitH(L);if(!H)return null;
+if(it==2)break;
+var Lk=L.filter(function(p){var r=pj(H,p.i,p.j);return Math.hypot(r[0]-p.x,r[1]-p.y)<.25*pitch});
+if(Lk.length<8)return null;
+L=Lk;
+}
+if(L.length<.85*np)return null;
+var i0=1e9,i1=-1e9,j0=1e9,j1=-1e9;
+L.forEach(function(p){i0=Math.min(i0,p.i);i1=Math.max(i1,p.i);j0=Math.min(j0,p.j);j1=Math.max(j1,p.j)});
+var Wd=i1-i0+1,Hd=j1-j0+1,nc=Math.max(cols,Wd),nr=Hd;
+var ci=i0-Math.floor((nc-Wd)/2),cj=j0;
+var cn=[[ci,cj],[ci+nc-1,cj],[ci+nc-1,cj+nr-1],[ci,cj+nr-1]].map(function(z){var r=pj(H,z[0],z[1]);return{x:r[0],y:r[1]}});
+return{corners:cn,cols:nc,rows:nr,n:L.length,rotate:(cols<rows&&Wd>Hd*1.3)};
+}
+/*AUTO-END*/
+var rotAuto=false;
+function autoGrid(){
+if(!S.gray)return false;
+var cols=+$('#kpc-cols').value||24,rows=+$('#kpc-rows').value||36,r=null;
+var g=S.reg,x0=Math.max(0,Math.round(g.x0)),y0=Math.max(0,Math.round(g.y0)),x1=Math.min(S.iw,Math.round(g.x1)),y1=Math.min(S.ih,Math.round(g.y1)),w=x1-x0,h=y1-y0;
+if(w>=40&&h>=40){
+var sub=new Float32Array(w*h);
+for(var y=0;y<h;y++)sub.set(S.gray.subarray((y0+y)*S.iw+x0,(y0+y)*S.iw+x0+w),y*w);
+try{r=detectGrid(sub,w,h,cols,rows,$('#kpc-mode').value=='dark')}catch(e){}
+if(r)r.corners=r.corners.map(function(p){return{x:p.x+x0,y:p.y+y0}});
+}
+if(!r){msg('Could not find the grid inside the blue box. Fit the box around the card, check the hole setting, then press Find grid again, or drag the orange handles.');return false}
+if(r.rotate&&!rotAuto){rotAuto=true;rot90();if(!autoGrid())update();rotAuto=false;return true}
+S.corners=r.corners;S.manual=false;$('#kpc-cols').value=r.cols;$('#kpc-rows').value=r.rows;
+msg('Grid found from '+r.n+' holes ('+r.cols+' columns x '+r.rows+' rows). Check the dots; slide or drag if it is off. You can add more rows in Check & fix.');
+update();return true;
+}
+function nudge(dc,dr){
+if(!S.corners)return;
+var c=S.corners,nc=Math.max(1,S.cols-1),nr=Math.max(1,S.rows-1);
+var hx=((c[1].x-c[0].x)+(c[2].x-c[3].x))/2/nc,hy=((c[1].y-c[0].y)+(c[2].y-c[3].y))/2/nc;
+var vx=((c[3].x-c[0].x)+(c[2].x-c[1].x))/2/nr,vy=((c[3].y-c[0].y)+(c[2].y-c[1].y))/2/nr;
+S.corners=c.map(function(p){return{x:p.x+dc*hx+dr*vx,y:p.y+dc*hy+dr*vy}});
+S.manual=true;update();
+}
+$$('[data-nd]').forEach(function(b){b.addEventListener('click',function(){var q=b.getAttribute('data-nd').split(',');nudge(+q[0],+q[1])})});
+$('#kpc-auto').addEventListener('click',function(){autoGrid()});
+['#kpc-cols','#kpc-rows','#kpc-mode'].forEach(function(z){$(z).addEventListener('change',function(){if(S.manual)update();else autoGrid()})});
+function homog(p){
+var x0=p[0].x,y0=p[0].y,x1=p[1].x,y1=p[1].y,x2=p[2].x,y2=p[2].y,x3=p[3].x,y3=p[3].y;
+var sx=x0-x1+x2-x3,sy=y0-y1+y2-y3,H;
+if(Math.abs(sx)<1e-9&&Math.abs(sy)<1e-9){
+H={a:x1-x0,b:x3-x0,c:x0,d:y1-y0,e:y3-y0,f:y0,g:0,h:0};
+}else{
+var dx1=x1-x2,dx2=x3-x2,dy1=y1-y2,dy2=y3-y2,den=dx1*dy2-dx2*dy1;
+var g=(sx*dy2-dx2*sy)/den,h=(dx1*sy-sx*dy1)/den;
+H={a:x1-x0+g*x1,b:x3-x0+h*x3,c:x0,d:y1-y0+g*y1,e:y3-y0+h*y3,f:y0,g:g,h:h};
+}
+return H;
+}
+function mapP(H,u,v){var w=H.g*u+H.h*v+1;return[(H.a*u+H.b*v+H.c)/w,(H.d*u+H.e*v+H.f)/w]}
+function uv(i,n){return n>1?i/(n-1):.5}
+function dist(a,b){return Math.hypot(a[0]-b[0],a[1]-b[1])}
+function areaSamp(H,c,r,fr){
+var n=4,sum=0,cnt=0,du=S.cols>1?1/(S.cols-1):0,dv=S.rows>1?1/(S.rows-1):0,u0=uv(c,S.cols),v0=uv(r,S.rows);
+for(var j=-n;j<=n;j++)for(var i=-n;i<=n;i++){
+if(i*i+j*j>n*n+1)continue;
+var p=mapP(H,u0+i/n*fr*du,v0+j/n*fr*dv),x=Math.round(p[0]),y=Math.round(p[1]);
+if(x<0||y<0||x>=S.iw||y>=S.ih)continue;
+sum+=S.gray[y*S.iw+x];cnt++;
+}
+return cnt?sum/cnt:128;
+}
+function samp(px,py,rad){
+var sum=0,n=0,cx=Math.round(px),cy=Math.round(py);
+for(var dy=-rad;dy<=rad;dy++){
+var yy=cy+dy;if(yy<0||yy>=S.ih)continue;
+for(var dx=-rad;dx<=rad;dx++){var xx=cx+dx;if(xx<0||xx>=S.iw)continue;sum+=S.gray[yy*S.iw+xx];n++}
+}
+return n?sum/n:128;
+}
+function otsu(a){
+var h=new Array(256).fill(0),n=a.length,sum=0,i;
+a.forEach(function(v){h[Math.max(0,Math.min(255,Math.round(v)))]++});
+for(i=0;i<256;i++)sum+=i*h[i];
+var sb=0,wb=0,mx=-1,t=128;
+for(i=0;i<256;i++){
+wb+=h[i];if(!wb)continue;
+var wf=n-wb;if(!wf)break;
+sb+=i*h[i];
+var mb=sb/wb,mf=(sum-sb)/wf,v=wb*wf*(mb-mf)*(mb-mf);
+if(v>mx){mx=v;t=i}
+}
+return t;
+}
+function update(){
+if(!S.gray)return;
+var cols=+$('#kpc-cols').value||24,rows=+$('#kpc-rows').value||36;
+S.cols=Math.max(1,Math.min(60,cols));S.rows=Math.max(1,Math.min(200,rows));
+var H=homog(S.corners);
+var p00=mapP(H,uv(0,S.cols),uv(0,S.rows)),p10=mapP(H,uv(1,S.cols),uv(0,S.rows)),p01=mapP(H,uv(0,S.cols),uv(1,S.rows));
+var pitch=Math.min(dist(p00,p10),dist(p00,p01));
+var rad=Math.max(2,Math.round(pitch*.2)),fr=(+$('#kpc-area').value||35)/100,rr=Math.max(2,fr*pitch);
+var vals=[],flat=[],pts=[],comp=$('#kpc-comp').checked;
+for(var r=0;r<S.rows;r++){
+var rowv=[];
+for(var c=0;c<S.cols;c++){
+var p=mapP(H,uv(c,S.cols),uv(r,S.rows));
+var v=areaSamp(H,c,r,fr);
+if(comp){
+var bs=0,bn=0,sr=Math.max(1,Math.round(rad*.5));
+[[-1,-1],[1,-1],[-1,1],[1,1]].forEach(function(o){
+var cu=uv(c,S.cols)+o[0]*(S.cols>1?.5/(S.cols-1):0),cw=uv(r,S.rows)+o[1]*(S.rows>1?.5/(S.rows-1):0);
+if(cu<0||cu>1||cw<0||cw>1)return;
+var q2=mapP(H,cu,cw);bs+=samp(q2[0],q2[1],sr);bn++;
+});
+if(bn)v=Math.min(255,v/(bs/bn)*128);
+}
+rowv.push(v);flat.push(v);pts.push(p);
+}
+vals.push(rowv);
+}
+var t=otsu(flat)+(+$('#kpc-thr').value||0);
+var dark=$('#kpc-mode').value=='dark';
+S.det=vals.map(function(rw){return rw.map(function(v){return(dark?v<=t:v>t)?1:0})});
+vx.drawImage(S.src,0,0);
+var k=S.iw/(view.clientWidth||S.iw),rg=S.reg;
+vx.fillStyle='rgba(0,0,0,.5)';
+vx.fillRect(0,0,S.iw,rg.y0);vx.fillRect(0,rg.y1,S.iw,S.ih-rg.y1);vx.fillRect(0,rg.y0,rg.x0,rg.y1-rg.y0);vx.fillRect(rg.x1,rg.y0,S.iw-rg.x1,rg.y1-rg.y0);
+var i=0;
+vx.lineWidth=2*k;
+for(r=0;r<S.rows;r++){
+for(c=0;c<S.cols;c++){
+var q=pts[i++];vx.beginPath();vx.arc(q[0],q[1],rr,0,6.283);
+if(S.det[r][c]){vx.fillStyle='rgba(34,197,94,.6)';vx.fill()}
+else{vx.strokeStyle='rgba(239,68,68,.9)';vx.stroke()}
+}
+}
+vx.strokeStyle='#f59e0b';vx.lineWidth=2*k;vx.beginPath();
+S.corners.forEach(function(q,j){j?vx.lineTo(q.x,q.y):vx.moveTo(q.x,q.y)});
+vx.closePath();vx.stroke();
+vx.font='bold '+(13*k)+'px sans-serif';vx.textAlign='center';vx.textBaseline='middle';
+['TL','TR','BR','BL'].forEach(function(lb,j){
+var q=S.corners[j];
+vx.beginPath();vx.arc(q.x,q.y,11*k,0,6.283);vx.fillStyle='#f59e0b';vx.fill();
+vx.fillStyle='#111';vx.fillText(lb,q.x,q.y);
+});
+vx.strokeStyle='#38bdf8';vx.lineWidth=2*k;vx.setLineDash([8*k,5*k]);vx.strokeRect(rg.x0,rg.y0,rg.x1-rg.x0,rg.y1-rg.y0);vx.setLineDash([]);
+vx.fillStyle='#38bdf8';
+[[rg.x0,rg.y0],[rg.x1,rg.y0],[rg.x1,rg.y1],[rg.x0,rg.y1]].forEach(function(q){vx.fillRect(q[0]-8*k,q[1]-8*k,16*k,16*k)});
+}
+['#kpc-cols','#kpc-rows','#kpc-mode','#kpc-thr','#kpc-comp','#kpc-area'].forEach(function(s){$(s).addEventListener('input',update)});
+function ptr(e){
+var b=view.getBoundingClientRect(),k=S.iw/b.width;
+return{x:(e.clientX-b.left)*k,y:(e.clientY-b.top)*k,k:k};
+}
+view.addEventListener('pointerdown',function(e){
+if(!S.corners||!S.reg)return;
+var p=ptr(e),g=S.reg,bd=34*p.k,d0=null;
+S.corners.forEach(function(q,i){var d=Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;d0={t:'g',i:i}}});
+var rc=[[g.x0,g.y0],[g.x1,g.y0],[g.x1,g.y1],[g.x0,g.y1]];
+rc.forEach(function(q,i){var d=Math.hypot(q[0]-p.x,q[1]-p.y);if(d<bd){bd=d;var o=rc[(i+2)%4];d0={t:'r',fx:o[0],fy:o[1]}}});
+if(d0){S.drag=d0;S.moved=false;view.setPointerCapture(e.pointerId);e.preventDefault()}
+else if(S.zoom>1){var wp=$('#kpc-vw');S.pan={x:e.clientX,y:e.clientY,l:wp.scrollLeft,t:wp.scrollTop};view.setPointerCapture(e.pointerId);e.preventDefault()}
+});
+view.addEventListener('pointermove',function(e){
+if(S.pan){var wq=$('#kpc-vw');wq.scrollLeft=S.pan.l-(e.clientX-S.pan.x);wq.scrollTop=S.pan.t-(e.clientY-S.pan.y);return}
+var d=S.drag;if(!d||d<0)return;
+var p=ptr(e),x=Math.max(0,Math.min(S.iw,p.x)),y=Math.max(0,Math.min(S.ih,p.y));
+if(d.t=='g'){S.corners[d.i]={x:x,y:y};S.manual=true}
+else{S.reg={x0:Math.min(x,d.fx),y0:Math.min(y,d.fy),x1:Math.max(x,d.fx),y1:Math.max(y,d.fy)};S.moved=true}
+update();
+});
+function endDrag(){var d=S.drag;S.drag=-1;S.pan=null;if(d&&d.t=='r'&&S.moved){S.moved=false;autoGrid()}}
+view.addEventListener('pointerup',endDrag);
+view.addEventListener('pointercancel',endDrag);
+$('#kpc-use').addEventListener('click',function(){
+if(!S.det){msg('Choose a photo first.');return}
+update();
+S.grid=S.det.map(function(r){return r.slice()});S.row=0;save();show(2);
+});
+$('#kpc-blank').addEventListener('click',function(){
+S.cols=Math.max(1,Math.min(60,+$('#kpc-cols').value||24));S.rows=Math.max(1,Math.min(200,+$('#kpc-rows').value||36));
+S.grid=blank();S.row=0;save();show(2);
+});
+function setZoom(z){
+var w=$('#kpc-vw'),fx=w.scrollWidth?(w.scrollLeft+w.clientWidth/2)/w.scrollWidth:.5,fy=w.scrollHeight?(w.scrollTop+w.clientHeight/2)/w.scrollHeight:.5;
+S.zoom=z;view.style.width=z>1?(z*100)+'%':'';view.style.maxWidth=z>1?'none':'';$('#kpc-zoom').value=z;
+w.scrollLeft=fx*w.scrollWidth-w.clientWidth/2;w.scrollTop=fy*w.scrollHeight-w.clientHeight/2;
+if(S.gray)update();
+}
+$('#kpc-zoom').addEventListener('input',function(){setZoom(+this.value)});
+$('#kpc-zfit').addEventListener('click',function(){setZoom(1)});
+/* ---------- edit ---------- */
+var edit=$('#kpc-edit'),painting=false,pv=1;
+function cellAt(cv,e){
+var b=cv.getBoundingClientRect();
+var c=Math.floor((e.clientX-b.left-S.lm)/S.cell),r=Math.floor((e.clientY-b.top-S.tm)/S.cell);
+return(r>=0&&r<S.rows&&c>=0&&c<S.cols)?[r,c]:null;
+}
+edit.addEventListener('pointerdown',function(e){
+var h=cellAt(edit,e);if(!h)return;
+pushU();pv=S.grid[h[0]][h[1]]?0:1;S.grid[h[0]][h[1]]=pv;painting=true;edit.setPointerCapture(e.pointerId);draw(edit,'edit');
+});
+edit.addEventListener('pointermove',function(e){
+if(!painting)return;
+var h=cellAt(edit,e);if(!h||S.grid[h[0]][h[1]]===pv)return;
+S.grid[h[0]][h[1]]=pv;draw(edit,'edit');
+});
+function endPaint(){if(painting){painting=false;save()}}
+edit.addEventListener('pointerup',endPaint);
+edit.addEventListener('pointercancel',endPaint);
+/*REP-START*/
+function repeatGrid(g,C,mw,mh,R,mode){
+var m=[],r,c,out=[],ho=Math.floor(mw/2),vo=Math.floor(mh/2);
+for(r=0;r<mh;r++)m.push(g[r].slice(0,mw));
+for(r=0;r<R;r++){
+var tr=Math.floor(r/mh),row=[];
+for(c=0;c<C;c++){
+var tc=Math.floor(c/mw),cc=c%mw,rr=r%mh;
+if(mode=='brick'&&tr%2)cc=((c-ho)%mw+mw)%mw;
+if(mode=='drop'&&tc%2)rr=((r-vo)%mh+mh)%mh;
+if(mode=='mirror'){if(tc%2)cc=mw-1-cc;if(tr%2)rr=mh-1-rr}
+row.push(m[rr][cc]);
+}
+out.push(row);
+}
+return out;
+}
+/*REP-END*/
+function pushU(){
+S.undo=S.undo||[];
+S.undo.push(S.grid.map(function(r){return r.slice()}));
+if(S.undo.length>30)S.undo.shift();
+}
+function undo(){
+var g=S.undo&&S.undo.pop();if(!g)return;
+S.grid=g;S.rows=g.length;S.cols=g[0].length;$('#kpc-rows').value=S.rows;$('#kpc-cols').value=S.cols;
+S.row=Math.min(S.row,S.rows-1);save();draw(edit,'edit');
+}
+$('#kpc-undo').addEventListener('click',undo);
+$('#kpc-mapply').addEventListener('click',function(){
+var mw=Math.max(1,Math.min(S.cols,+$('#kpc-mw').value||1)),mh=Math.max(1,Math.min(S.rows,+$('#kpc-mh').value||1));
+var R=Math.max(1,Math.min(200,+$('#kpc-mr').value||S.rows));
+pushU();
+S.grid=repeatGrid(S.grid,S.cols,mw,mh,R,$('#kpc-ml').value);
+S.rows=R;$('#kpc-rows').value=R;S.row=Math.min(S.row,R-1);save();draw(edit,'edit');
+});
+['#kpc-mw','#kpc-mh','#kpc-mshow'].forEach(function(z){$(z).addEventListener('input',function(){draw(edit,'edit')})});
+function rowOp(top,add){
+var n=Math.max(1,Math.min(100,+$('#kpc-addn').value||1)),C=S.cols,g=S.grid;
+if(add){
+n=Math.min(n,200-g.length);if(n<1)return;
+var z=[];for(var i=0;i<n;i++)z.push(new Array(C).fill(0));
+g=top?z.concat(g):g.concat(z);
+}else{
+n=Math.min(n,g.length-1);if(n<1)return;
+g=top?g.slice(n):g.slice(0,g.length-n);
+}
+pushU();S.grid=g;S.rows=g.length;$('#kpc-rows').value=S.rows;S.row=Math.min(S.row,S.rows-1);save();draw(edit,'edit');
+}
+$('#kpc-addt').addEventListener('click',function(){rowOp(true,true)});
+$('#kpc-addb').addEventListener('click',function(){rowOp(false,true)});
+$('#kpc-remt').addEventListener('click',function(){rowOp(true,false)});
+$('#kpc-remb').addEventListener('click',function(){rowOp(false,false)});
+function tf(fn){pushU();S.grid=fn(S.grid);save();draw(edit,'edit')}
+$('#kpc-fh').addEventListener('click',function(){tf(function(g){return g.map(function(r){return r.slice().reverse()})})});
+$('#kpc-fv').addEventListener('click',function(){tf(function(g){return g.slice().reverse()})});
+$('#kpc-inv').addEventListener('click',function(){tf(function(g){return g.map(function(r){return r.map(function(v){return v?0:1})})})});
+$('#kpc-clr').addEventListener('click',function(){tf(blank)});
+$('#kpc-go').addEventListener('click',function(){show(3)});
+$('#kpc-exp').addEventListener('click',function(){
+var b=new Blob([JSON.stringify({cols:S.cols,rows:S.rows,grid:S.grid})],{type:'application/json'});
+var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='punchcard.json';a.click();
+setTimeout(function(){URL.revokeObjectURL(a.href)},1000);
+});
+$('#kpc-imp').addEventListener('change',function(){
+var f=this.files&&this.files[0];if(!f)return;
+var fr=new FileReader();
+fr.onload=function(){
+try{var o=JSON.parse(fr.result);if(!validGrid(o))throw 0;setGrid(o);save();show(2);msg('Card imported.')}
+catch(e){msg('That file is not a punch card export.')}
+};
+fr.readAsText(f);
+});
+/* ---------- knit ---------- */
+var kc=$('#kpc-knit');
+kc.addEventListener('click',function(e){
+var b=kc.getBoundingClientRect(),r=Math.floor((e.clientY-b.top-S.tm)/S.cell);
+if(r>=0&&r<S.rows)setRow(r);
+root.focus();
+});
+$('#kpc-prev').addEventListener('click',function(){go(-1)});
+$('#kpc-next').addEventListener('click',function(){go(1)});
+$('#kpc-jump').addEventListener('change',function(){setRow((+this.value||1)-1)});
+$('#kpc-focus').addEventListener('change',function(){draw(kc,'knit')});
+root.addEventListener('keydown',function(e){
+if(/INPUT|SELECT/.test(e.target.tagName))return;
+if(S.step==2&&(e.ctrlKey||e.metaKey)&&e.key=='z'){e.preventDefault();undo();return}
+if(S.step==2){
+var m={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]}[e.key];
+if(m){e.preventDefault();shiftG(m[0],m[1])}
+return;
+}
+if(S.step!=3)return;
+if(e.key=='ArrowDown'||e.key=='ArrowRight'||e.key==' '){e.preventDefault();go(1)}
+else if(e.key=='ArrowUp'||e.key=='ArrowLeft'){e.preventDefault();go(-1)}
+});
+var wl=null;
+$('#kpc-wake').addEventListener('change',async function(){
+try{
+if(this.checked&&navigator.wakeLock){wl=await navigator.wakeLock.request('screen')}
+else if(wl){await wl.release();wl=null}
+}catch(e){}
+});
+$$('.tabs button').forEach(function(b){b.addEventListener('click',function(){show(+b.getAttribute('data-s'))})});
+var rt;
+window.addEventListener('resize',function(){clearTimeout(rt);rt=setTimeout(redraw,150)});
+/* ---------- picture to card ---------- */
+/*PIC-START*/
+function picGrid(I,W,H,cols,rows,o){
+var W1=W+1,v=[],r,c,x,y;
+for(r=0;r<rows;r++){
+var ar=o.area||1,hh=ar*H/rows/2,cy=(r+.5)*H/rows;
+var y0=Math.max(0,Math.min(H-1,Math.floor(cy-hh))),y1=Math.min(H,Math.max(y0+1,Math.ceil(cy+hh))),row=[];
+for(c=0;c<cols;c++){
+var hw=ar*W/cols/2,cx=(c+.5)*W/cols;
+var x0=Math.max(0,Math.min(W-1,Math.floor(cx-hw))),x1=Math.min(W,Math.max(x0+1,Math.ceil(cx+hw)));
+row.push((I[y1*W1+x1]-I[y0*W1+x1]-I[y1*W1+x0]+I[y0*W1+x0])/((x1-x0)*(y1-y0)));
+}
+v.push(row);
+}
+var lo=0,hi=255;
+if(o.auto){
+var f=[].concat.apply([],v).sort(function(a,b){return a-b});
+lo=f[Math.floor(f.length*.02)];hi=f[Math.min(f.length-1,Math.floor(f.length*.98))];
+}
+for(r=0;r<rows;r++)for(c=0;c<cols;c++){
+var t=hi>lo?(v[r][c]-lo)/(hi-lo)*255:v[r][c];
+t=(t-128)*o.contrast+128+o.bright;
+v[r][c]=Math.max(0,Math.min(255,t));
+}
+var g=[],bay=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+for(r=0;r<rows;r++)g.push(new Array(cols).fill(0));
+if(o.method=='fs'){
+for(y=0;y<rows;y++){
+var ltr=y%2==0;
+for(var k=0;k<cols;k++){
+x=ltr?k:cols-1-k;
+var old=v[y][x],on=old<128,er=old-(on?0:255),d=ltr?1:-1;
+g[y][x]=on?1:0;
+if(x+d>=0&&x+d<cols)v[y][x+d]+=er*7/16;
+if(y+1<rows){
+if(x-d>=0&&x-d<cols)v[y+1][x-d]+=er*3/16;
+v[y+1][x]+=er*5/16;
+if(x+d>=0&&x+d<cols)v[y+1][x+d]+=er/16;
+}
+}
+}
+}else{
+for(y=0;y<rows;y++)for(x=0;x<cols;x++){
+var th=o.method=='bayer'?(bay[y%4][x%4]+.5)/16*255:128;
+g[y][x]=v[y][x]<th?1:0;
+}
+}
+if(o.invert)g=g.map(function(a){return a.map(function(z){return z?0:1})});
+return g;
+}
+/*PIC-END*/
+var pic={w:0,h:0,I:null,grid:null,manual:false};
+function drawTmp(cv,g){
+var sg=S.grid,sr=S.rows,sc=S.cols;
+S.grid=g;S.rows=g.length;S.cols=g[0].length;
+draw(cv,'edit');
+S.grid=sg;S.rows=sr;S.cols=sc;
+}
+function genPic(){
+if(!pic.I)return;
+var cols=Math.max(1,Math.min(60,+$('#kpc-pcols').value||24)),sr=+$('#kpc-pst').value||.75;
+var rows=pic.manual?Math.max(1,Math.min(200,+$('#kpc-prows').value||1)):Math.max(1,Math.min(200,Math.round(cols*pic.h/pic.w/sr)));
+if(!pic.manual)$('#kpc-prows').value=rows;
+pic.grid=picGrid(pic.I,pic.w,pic.h,cols,rows,{method:$('#kpc-pm').value,bright:+$('#kpc-pb').value,contrast:(+$('#kpc-pc').value)/100,auto:$('#kpc-pa').checked,invert:$('#kpc-pi').checked,area:(+$('#kpc-ps').value||100)/100});
+drawTmp($('#kpc-pcard'),pic.grid);
+}
+$('#kpc-pfile').addEventListener('change',function(){
+var f=this.files&&this.files[0];if(!f)return;
+var url=URL.createObjectURL(f),im=new Image();
+im.onload=function(){
+var sc=Math.min(1,1600/Math.max(im.width,im.height)),w=Math.round(im.width*sc),h=Math.round(im.height*sc);
+var cv=document.createElement('canvas');cv.width=w;cv.height=h;
+var x=cv.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,w,h);x.drawImage(im,0,0,w,h);
+URL.revokeObjectURL(url);
+var d=x.getImageData(0,0,w,h).data,W1=w+1,I=new Float64Array(W1*(h+1));
+for(var yy=0;yy<h;yy++){var rs=0;for(var xx=0;xx<w;xx++){var q=(yy*w+xx)*4;rs+=.299*d[q]+.587*d[q+1]+.114*d[q+2];I[(yy+1)*W1+xx+1]=I[yy*W1+xx+1]+rs}}
+pic.I=I;pic.w=w;pic.h=h;pic.manual=false;
+var th=$('#kpc-pthumb');th.width=Math.min(160,w);th.height=Math.round(th.width*h/w);th.getContext('2d').drawImage(cv,0,0,th.width,th.height);
+genPic();
+};
+im.onerror=function(){msg('Could not open that image.')};
+im.src=url;
+});
+['#kpc-pcols','#kpc-pst','#kpc-pm','#kpc-pb','#kpc-pc','#kpc-ps','#kpc-pa','#kpc-pi'].forEach(function(z){$(z).addEventListener('input',genPic)});
+$('#kpc-prows').addEventListener('input',function(){pic.manual=true;genPic()});
+$('#kpc-pauto').addEventListener('click',function(){pic.manual=false;genPic()});
+$('#kpc-puse').addEventListener('click',function(){
+if(!pic.grid){msg('Choose a picture first.');return}
+setGrid({grid:pic.grid,row:0});save();show(2);
+});
+/* ---------- shift, style, preview, download ---------- */
+function shiftG(dy,dx){tf(function(g){var R=g.length,C=g[0].length;return g.map(function(_,r){var src=g[(r-dy+R)%R];return src.map(function(_2,c){return src[(c-dx+C)%C]})})})}
+$$('[data-sh]').forEach(function(b){b.addEventListener('click',function(){var q=b.getAttribute('data-sh').split(',');shiftG(+q[0],+q[1])})});
+$$('.kpc-style').forEach(function(sel){sel.addEventListener('change',function(){S.style=sel.value;$$('.kpc-style').forEach(function(o){o.value=S.style});redraw()})});
+function shade(h,f){var n=parseInt(h.slice(1),16);return'rgb('+Math.round((n>>16&255)*f)+','+Math.round((n>>8&255)*f)+','+Math.round((n&255)*f)+')'}
+function drawPrev(){
+var cv=$('#kpc-pv'),rep=+$('#kpc-rep').value,rh=+$('#kpc-reph').value,tc=S.cols*rh,A=$('#kpc-ca').value,B=$('#kpc-cb').value;
+var cell=Math.max(5,Math.min(24,Math.floor(((cv.parentNode.clientWidth||700)-4)/tc)));
+var ph=cell*.8,tr=S.rows*rep,w=tc*cell,h=Math.ceil(tr*ph);
+cv.width=w;cv.height=h;cv.style.width=w+'px';cv.style.height=h+'px';
+var x=cv.getContext('2d');x.lineCap='round';x.lineJoin='round';x.lineWidth=cell*.42;
+for(var i=0;i<tr;i++){
+var row=S.grid[i%S.rows],y0=h-(i+1)*ph;
+for(var c=0;c<tc;c++){
+var col=row[c%S.cols]?B:A,x0=c*cell;
+x.fillStyle=shade(col,.5);x.fillRect(x0,y0,cell+1,ph+1);
+x.strokeStyle=col;x.beginPath();x.moveTo(x0+cell*.22,y0+ph*.12);x.lineTo(x0+cell*.5,y0+ph*.88);x.lineTo(x0+cell*.78,y0+ph*.12);x.stroke();
+}
+}
+if(S.per!==false){
+var tw=S.cols*cell,th=S.rows*ph,k;
+x.lineWidth=1;x.setLineDash([5,4]);x.strokeStyle='rgba(255,255,255,.7)';
+for(k=1;k<rh;k++){x.beginPath();x.moveTo(k*tw+.5,0);x.lineTo(k*tw+.5,h);x.stroke()}
+for(k=1;k<rep;k++){x.beginPath();x.moveTo(0,h-k*th+.5);x.lineTo(w,h-k*th+.5);x.stroke()}
+x.setLineDash([]);
+x.strokeStyle='rgba(0,0,0,.75)';x.lineWidth=5;x.strokeRect(2.5,h-th+2.5,tw-5,th-5);
+x.strokeStyle='#f59e0b';x.lineWidth=3;x.strokeRect(2.5,h-th+2.5,tw-5,th-5);
+}
+}
+['#kpc-ca','#kpc-cb','#kpc-rep','#kpc-reph'].forEach(function(s){$(s).addEventListener('input',drawPrev)});
+function dl(cv,name){cv.toBlob(function(b){var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},1000)})}
+$('#kpc-dlc').addEventListener('click',function(){dl($('#kpc-edit'),'punchcard.png')});
+$('#kpc-per').addEventListener('click',function(){
+S.per=S.per===false;
+this.textContent='Outline: '+(S.per?'on':'off');this.classList.toggle('pri',S.per);this.setAttribute('aria-pressed',S.per);
+drawPrev();
+});
+$('#kpc-dlp').addEventListener('click',function(){dl($('#kpc-pv'),'knit-preview.png')});
+/* ---------- init ---------- */
+S.step=1;
+try{
+var saved=JSON.parse(localStorage.getItem(KEY)||'null');
+if(validGrid(saved)){setGrid(saved);show(3);msg('Restored your saved card.')}
+}catch(e){}
+if(!S.grid)show(1);
+})();
+</script>
+</div>
