@@ -2,7 +2,7 @@
 layout: project
 title: Punchcard Studio
 date: 2026-11-18
-description: diy cost effective cold mist humidifier that can plug onto any container
+description: Scan, design and knit with punch cards for knitting machines, all in your browser.
 tags:
   - knitting
   - programming
