@@ -5,7 +5,7 @@
 .kpc p,.kpc section,.kpc details,.kpc summary,.kpc div,.kpc span{margin:0;padding:0;float:none;text-indent:0}
 .kpc [hidden]{display:none!important}
 .kpc label{display:inline-flex!important;align-items:center;gap:6px;margin:0;padding:0;font-size:.95rem;font-weight:400;width:auto}
-.kpc button,.kpc .btn,.kpc select,.kpc input[type=number]{font-family:inherit;font-size:.95rem;font-weight:400;line-height:1.2;min-height:38px;height:auto;width:auto;margin:0;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:inherit;cursor:pointer;box-shadow:none;text-transform:none;letter-spacing:normal;text-decoration:none}
+.kpc button,.kpc .btn,.kpc select,.kpc input[type=number]{font-family:inherit;font-size:1rem;font-weight:400;line-height:1.2;min-height:38px;height:auto;width:auto;margin:0;padding:7px 12px;border:1px solid var(--line);border-radius:8px;background:var(--soft);color:inherit;cursor:pointer;box-shadow:none;text-transform:none;letter-spacing:normal;text-decoration:none}
 .kpc button,.kpc .btn{-webkit-appearance:none;appearance:none;display:inline-flex;align-items:center;justify-content:center}
 .kpc select,.kpc input[type=number]{background:Canvas;color:CanvasText}
 .kpc input[type=number]{width:5.2em;cursor:text}
@@ -32,43 +32,54 @@
 .kpc .phead{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center;margin:0 0 8px}
 .kpc .phead>b{margin-right:auto}
 .kpc .wrap{border:1px solid var(--line);border-radius:10px;overflow:auto;max-height:72vh;background:var(--soft);-webkit-overflow-scrolling:touch}
-.kpc canvas{display:block;max-width:none;margin:0;border:0;touch-action:none}
-.kpc #kpc-view{max-width:100%;height:auto}
+.kpc canvas{display:block;max-width:none;margin:0;border:0;touch-action:auto;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.kpc #kpc-vc{position:relative;width:100%}
+.kpc #kpc-view{width:100%;max-width:none;height:auto;touch-action:pan-x pan-y}
+.kpc #kpc-vw{max-height:none}
+.kpc .kpc-h{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;touch-action:none;cursor:grab;z-index:2}
+.kpc #kpc-edit{touch-action:pan-x pan-y}
+.kpc #kpc-paint{display:none}
+.kpc .zc{display:inline-flex;gap:6px;align-items:center;font-size:.9rem}
+.kpc details.grp{display:block}
+.kpc details.grp>summary{display:block;font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;opacity:.8;cursor:pointer}
+.kpc .gb{display:flex;flex-wrap:wrap;gap:6px 8px;align-items:center;margin-top:8px}
 .kpc #kpc-knit{touch-action:auto}
 .kpc .big button{font-size:1.15rem;padding:12px 22px}
 .kpc .now{font-size:1.25rem;font-weight:700;min-width:8em}
 .kpc .cols{margin:8px 0 0;font-size:.95rem;line-height:1.5;word-break:break-word}
+@media (pointer:coarse){.kpc button,.kpc .btn,.kpc select,.kpc input[type=number]{min-height:44px}.kpc input[type=range]{min-height:32px}.kpc input[type=checkbox]{width:1.4em;height:1.4em}.kpc #kpc-paint{display:inline-flex}}
+@media (max-width:700px){.kpc .tabs{flex-wrap:wrap;overflow:visible;border-bottom:0;padding-bottom:0}.kpc .tabs button{flex:1 1 40%}.kpc .bar{flex-direction:column}.kpc .grp{width:100%}.kpc .wrap{max-height:none}.kpc #kpc-scroll{max-height:60vh}.kpc label.rg{flex:1 1 100%}.kpc label.rg input[type=range]{flex:1;width:100%}.kpc .row>.btn,.kpc .row>button{flex:1 1 auto}}
 @media (max-width:520px){.kpc{padding:10px}.kpc .pane{flex-basis:100%}.kpc .big button{flex:1}}
 </style>
 <div class="tabs"><button data-s="1">Scan card</button><button data-s="5">From picture</button><button data-s="2">Check &amp; fix</button><button data-s="3">Knit</button></div>
 <div class="msg" id="kpc-msg"></div>
 <section data-p="1">
 <div class="row"><label class="btn">Take or choose photo<input type="file" id="kpc-file" accept="image/*" hidden></label><button id="kpc-rot">Rotate 90°</button><label>Columns <input type="number" id="kpc-cols" value="24" min="1" max="60"></label><label>Rows <input type="number" id="kpc-rows" value="36" min="1" max="200"></label></div>
-<div class="row"><label>Holes look <select id="kpc-mode"><option value="dark">darker than the card</option><option value="light">lighter than the card</option></select></label><label>Sensitivity <input type="range" id="kpc-thr" min="-60" max="60" value="0"></label><label><input type="checkbox" id="kpc-comp" checked> Even out uneven lighting</label><label>Sample area <input type="range" id="kpc-area" min="10" max="50" value="35"></label></div>
+<div class="row"><label>Holes look <select id="kpc-mode"><option value="dark">darker than the card</option><option value="light">lighter than the card</option></select></label><label class="rg">Sensitivity <input type="range" id="kpc-thr" min="-60" max="60" value="0"></label><label><input type="checkbox" id="kpc-comp" checked> Even out uneven lighting</label><label class="rg">Sample area <input type="range" id="kpc-area" min="10" max="50" value="35"></label></div>
 <details class="help"><summary>How this works</summary><p class="hint">First drag the blue square handles so the box fits around the card, keeping the background out but leaving a little card margin. The grid is then found inside the box. Each circle shows the area that is averaged for that cell (green = punched, red ring = not); resize it with Sample area. If the grid is off, slide it with the arrows or drag the orange handles (TL, TR, BR, BL) onto the corner cells. Your manual changes stay until you move the box or press Find grid again. The number of rows is taken from the photo; zoom in to check the grid.</p></details>
 <div class="row sh"><button id="kpc-auto">Find grid again</button>Slide grid: <button data-nd="-1,0" aria-label="Slide grid left">&#8592;</button><button data-nd="1,0" aria-label="Slide grid right">&#8594;</button><button data-nd="0,-1" aria-label="Slide grid up">&#8593;</button><button data-nd="0,1" aria-label="Slide grid down">&#8595;</button></div>
-<div class="row"><label>Zoom <input type="range" id="kpc-zoom" min="1" max="6" step="0.25" value="1"></label><button id="kpc-zfit">Fit</button><span class="hint" style="margin:0">When zoomed, drag the empty photo area to move around.</span></div>
-<div class="wrap" id="kpc-vw"><canvas id="kpc-view" width="10" height="10"></canvas></div>
+<div class="row"><label class="rg">Zoom <input type="range" id="kpc-zoom" min="1" max="6" step="0.25" value="1"></label><button id="kpc-zfit">Fit</button><span class="hint" style="margin:0">When zoomed, drag the empty photo area to move around.</span></div>
+<div class="wrap" id="kpc-vw"><div id="kpc-vc"><canvas id="kpc-view" width="10" height="10"></canvas></div></div>
 <div class="row" style="margin-top:10px"><button id="kpc-use" class="pri">Use this card</button><button id="kpc-blank">Start with a blank card</button></div>
 </section>
 <section data-p="5" hidden>
 <details class="help"><summary>How this works</summary><p class="hint">Turn any picture into a punch card. Each cell takes the average brightness of the part of the picture it covers, so fine detail blends instead of being skipped. Dark areas become holes. Dithering then guesses the in-between greys by mixing holes and blanks.</p></details>
 <div class="row"><label class="btn">Choose picture<input type="file" id="kpc-pfile" accept="image/*" hidden></label><label>Columns <input type="number" id="kpc-pcols" value="24" min="1" max="60"></label><label>Rows <input type="number" id="kpc-prows" value="36" min="1" max="200"></label><button id="kpc-pauto">Auto rows</button><label>Stitch height/width <input type="number" id="kpc-pst" value="0.75" min="0.3" max="2" step="0.05"></label></div>
-<div class="row"><label>Method <select id="kpc-pm"><option value="fs">Dithering (smooth shading)</option><option value="bayer">Ordered dots (regular texture)</option><option value="thr">Plain threshold (clean shapes)</option></select></label><label>Brightness <input type="range" id="kpc-pb" min="-100" max="100" value="0"></label><label>Contrast <input type="range" id="kpc-pc" min="20" max="300" value="100"></label><label>Smoothing <input type="range" id="kpc-ps" min="100" max="250" value="100"></label><label><input type="checkbox" id="kpc-pa" checked> Auto contrast</label><label><input type="checkbox" id="kpc-pi"> Invert</label><label>View <select class="kpc-style"><option value="card">Punch card</option><option value="grid">Grid</option></select></label></div>
+<div class="row"><label>Method <select id="kpc-pm"><option value="fs">Dithering (smooth shading)</option><option value="bayer">Ordered dots (regular texture)</option><option value="thr">Plain threshold (clean shapes)</option></select></label><label class="rg">Brightness <input type="range" id="kpc-pb" min="-100" max="100" value="0"></label><label class="rg">Contrast <input type="range" id="kpc-pc" min="20" max="300" value="100"></label><label class="rg">Smoothing <input type="range" id="kpc-ps" min="100" max="250" value="100"></label><label><input type="checkbox" id="kpc-pa" checked> Auto contrast</label><label><input type="checkbox" id="kpc-pi"> Invert</label><label>View <select class="kpc-style"><option value="card">Punch card</option><option value="grid">Grid</option></select></label></div>
 <div class="row" style="align-items:flex-start"><canvas id="kpc-pthumb" width="10" height="10" style="max-width:160px;height:auto;border:1px solid var(--line);border-radius:6px"></canvas><div class="wrap" style="flex:1;min-width:240px"><canvas id="kpc-pcard"></canvas></div></div>
 <div class="row" style="margin-top:10px"><button id="kpc-puse" class="pri">Use this card</button></div>
 </section>
 <section data-p="2" hidden>
 <details class="help"><summary>How this works</summary><details class="help"><summary>How this works</summary><p class="hint">Compare with your real card and tap or drag cells to fix them; the preview on the right updates as you edit. Arrow keys shift the whole card (it wraps around). To repeat a motif, draw it inside the dashed amber box at the top-left, set its size, pick a layout and press Repeat motif. Undo or Ctrl+Z steps back. In the preview, holes use colour B; the thick outline marks your card once and dashed lines show where it repeats.</p></details></details>
 <div class="bar">
-<div class="grp"><b>Edit</b><button id="kpc-fh">Flip left/right</button><button id="kpc-fv">Flip top/bottom</button><button id="kpc-inv">Invert</button><button id="kpc-clr">Clear</button><button id="kpc-undo">Undo</button></div>
-<div class="grp"><b>Shift</b><button data-sh="-1,0" aria-label="Shift up">&#8593;</button><button data-sh="1,0" aria-label="Shift down">&#8595;</button><button data-sh="0,-1" aria-label="Shift left">&#8592;</button><button data-sh="0,1" aria-label="Shift right">&#8594;</button></div>
-<div class="grp"><b>Rows</b><input type="number" class="jump" id="kpc-addn" value="1" min="1" max="100" aria-label="Number of rows"><button id="kpc-addt">Add above</button><button id="kpc-addb">Add below</button><button id="kpc-remt">Remove top</button><button id="kpc-remb">Remove bottom</button></div>
-<div class="grp"><b>Repeat</b><label>Motif width <input type="number" class="jump" id="kpc-mw" value="6" min="1" max="60"></label><label>height <input type="number" class="jump" id="kpc-mh" value="6" min="1" max="200"></label><label>Layout <select id="kpc-ml"><option value="straight">Straight</option><option value="brick">Brick (alternate rows shifted)</option><option value="drop">Half-drop (alternate columns shifted)</option><option value="mirror">Mirror (alternate tiles flipped)</option></select></label><label>Fill rows <input type="number" class="jump" id="kpc-mr" min="1" max="200" placeholder="same"></label><label><input type="checkbox" id="kpc-mshow" checked> Show motif</label><button id="kpc-mapply" class="pri">Repeat motif</button></div>
-<div class="grp"><b>Save</b><button id="kpc-dlc">Download card image</button><button id="kpc-exp">Export</button><label class="btn">Import<input type="file" id="kpc-imp" accept=".json,application/json" hidden></label></div>
+<details class="grp" open><summary>Edit</summary><div class="gb"><button id="kpc-fh">Flip left/right</button><button id="kpc-fv">Flip top/bottom</button><button id="kpc-inv">Invert</button><button id="kpc-clr">Clear</button><button id="kpc-undo">Undo</button></div></details>
+<details class="grp" open><summary>Shift</summary><div class="gb"><button data-sh="-1,0" aria-label="Shift up">&#8593;</button><button data-sh="1,0" aria-label="Shift down">&#8595;</button><button data-sh="0,-1" aria-label="Shift left">&#8592;</button><button data-sh="0,1" aria-label="Shift right">&#8594;</button></div></details>
+<details class="grp" open><summary>Rows</summary><div class="gb"><input type="number" class="jump" id="kpc-addn" value="1" min="1" max="100" aria-label="Number of rows"><button id="kpc-addt">Add above</button><button id="kpc-addb">Add below</button><button id="kpc-remt">Remove top</button><button id="kpc-remb">Remove bottom</button></div></details>
+<details class="grp" open><summary>Repeat</summary><div class="gb"><label>Motif width <input type="number" class="jump" id="kpc-mw" value="6" min="1" max="60"></label><label>height <input type="number" class="jump" id="kpc-mh" value="6" min="1" max="200"></label><label>Layout <select id="kpc-ml"><option value="straight">Straight</option><option value="brick">Brick (alternate rows shifted)</option><option value="drop">Half-drop (alternate columns shifted)</option><option value="mirror">Mirror (alternate tiles flipped)</option></select></label><label>Fill rows <input type="number" class="jump" id="kpc-mr" min="1" max="200" placeholder="same"></label><label><input type="checkbox" id="kpc-mshow" checked> Show motif</label><button id="kpc-mapply" class="pri">Repeat motif</button></div></details>
+<details class="grp" open><summary>Save</summary><div class="gb"><button id="kpc-dlc">Download card image</button><button id="kpc-exp">Export</button><label class="btn">Import<input type="file" id="kpc-imp" accept=".json,application/json" hidden></label></div></details>
 </div>
 <div class="split">
-<div class="pane"><div class="phead"><b>Card</b><label>View <select class="kpc-style"><option value="card">Punch card</option><option value="grid">Grid</option></select></label></div><div class="wrap"><canvas id="kpc-edit"></canvas></div></div>
+<div class="pane"><div class="phead"><b>Card</b><label>View <select class="kpc-style"><option value="card">Punch card</option><option value="grid">Grid</option></select></label><button id="kpc-paint">Drag to draw: off</button><div class="zc"><span>Cells</span><button id="kpc-cm" aria-label="Smaller cells">&minus;</button><button id="kpc-cp" aria-label="Larger cells">+</button><button id="kpc-cf">Fit</button></div></div><div class="wrap"><canvas id="kpc-edit"></canvas></div></div>
 <div class="pane"><div class="phead"><b>Live preview</b><label>A <input type="color" id="kpc-ca" value="#1f3a5f" aria-label="Colour A"></label><label>B <input type="color" id="kpc-cb" value="#f1e3c4" aria-label="Colour B"></label><label>Down <select id="kpc-rep"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label><label>Across <select id="kpc-reph"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label><button id="kpc-per" class="pri" aria-pressed="true">Outline: on</button><button id="kpc-dlp">Download</button></div><div class="wrap"><canvas id="kpc-pv"></canvas></div></div>
 </div>
 <div class="row" style="margin-top:12px"><button id="kpc-go" class="pri">Start knitting</button></div>
@@ -106,8 +117,8 @@ if(n==3){draw($('#kpc-knit'),'knit');knitUI(true);root.focus()}
 function redraw(){if(S.step==2)draw($('#kpc-edit'),'edit');if(S.step==3)draw($('#kpc-knit'),'knit');if(S.step==4)drawPrev();if(S.step==5)genPic()}
 function draw(cv,mode){
 var avail=(cv.parentNode.clientWidth||700)-4;
-var lm=S.lm,tm=S.tm;
-var cell=Math.max(10,Math.min(38,Math.floor((avail-lm)/S.cols)));
+S.lm=avail<420?34:52;var lm=S.lm,tm=S.tm;
+var cell=(S.cz&&cv.id=='kpc-edit')?S.cz:Math.max(10,Math.min(38,Math.floor((avail-lm)/S.cols)));
 var w=lm+S.cols*cell,h=tm+S.rows*cell,d=window.devicePixelRatio||1;
 S.cell=cell;
 cv.width=w*d;cv.height=h*d;cv.style.width=w+'px';cv.style.height=h+'px';
@@ -134,7 +145,7 @@ x.strokeStyle='#9ca3af';x.lineWidth=1;x.strokeRect(cx+.5,cy+.5,cell,cell);
 }
 }
 x.fillStyle=(mode=='knit'&&r==S.row)?'#b45309':'#888';
-x.fillText(r+1,lm-16,tm+r*cell+cell/2);
+x.fillText(r+1,lm-(lm>40?16:4),tm+r*cell+cell/2);
 }
 x.globalAlpha=1;
 x.strokeStyle='#6b7280';x.lineWidth=2;
@@ -150,7 +161,7 @@ if(mode=='knit'){
 var y=tm+S.row*cell;
 x.fillStyle='rgba(245,158,11,.30)';x.fillRect(0,y,w,cell);
 x.strokeStyle='#f59e0b';x.lineWidth=3;x.strokeRect(1.5,y+1.5,w-3,cell-3);
-x.fillStyle='#f59e0b';x.beginPath();x.moveTo(3,y+cell*.2);x.lineTo(3,y+cell*.8);x.lineTo(14,y+cell/2);x.closePath();x.fill();
+x.fillStyle='#f59e0b';x.beginPath();x.moveTo(3,y+cell*.2);x.lineTo(3,y+cell*.8);x.lineTo(lm>40?14:8,y+cell/2);x.closePath();x.fill();
 }
 if(cv.id=='kpc-edit')drawPrev();
 }
@@ -173,7 +184,7 @@ view.width=S.iw;view.height=S.ih;
 if(keep)return;
 var g=.06;
 S.reg={x0:S.iw*g,y0:S.ih*g,x1:S.iw*(1-g),y1:S.ih*(1-g)};
-S.zoom=1;view.style.width='';view.style.maxWidth='';$('#kpc-zoom').value=1;
+S.zoom=1;$('#kpc-vc').style.width='';$('#kpc-vw').style.maxHeight='';$('#kpc-zoom').value=1;
 defCorners();S.manual=false;
 if(!autoGrid())update();
 }
@@ -467,30 +478,50 @@ vx.fillStyle='#111';vx.fillText(lb,q.x,q.y);
 vx.strokeStyle='#38bdf8';vx.lineWidth=2*k;vx.setLineDash([8*k,5*k]);vx.strokeRect(rg.x0,rg.y0,rg.x1-rg.x0,rg.y1-rg.y0);vx.setLineDash([]);
 vx.fillStyle='#38bdf8';
 [[rg.x0,rg.y0],[rg.x1,rg.y0],[rg.x1,rg.y1],[rg.x0,rg.y1]].forEach(function(q){vx.fillRect(q[0]-8*k,q[1]-8*k,16*k,16*k)});
+placeH();
 }
 ['#kpc-cols','#kpc-rows','#kpc-mode','#kpc-thr','#kpc-comp','#kpc-area'].forEach(function(s){$(s).addEventListener('input',update)});
 function ptr(e){
 var b=view.getBoundingClientRect(),k=S.iw/b.width;
 return{x:(e.clientX-b.left)*k,y:(e.clientY-b.top)*k,k:k};
 }
-view.addEventListener('pointerdown',function(e){
-if(!S.corners||!S.reg)return;
-var p=ptr(e),g=S.reg,bd=34*p.k,d0=null;
-S.corners.forEach(function(q,i){var d=Math.hypot(q.x-p.x,q.y-p.y);if(d<bd){bd=d;d0={t:'g',i:i}}});
-var rc=[[g.x0,g.y0],[g.x1,g.y0],[g.x1,g.y1],[g.x0,g.y1]];
-rc.forEach(function(q,i){var d=Math.hypot(q[0]-p.x,q[1]-p.y);if(d<bd){bd=d;var o=rc[(i+2)%4];d0={t:'r',fx:o[0],fy:o[1]}}});
-if(d0){S.drag=d0;S.moved=false;view.setPointerCapture(e.pointerId);e.preventDefault()}
-else if(S.zoom>1){var wp=$('#kpc-vw');S.pan={x:e.clientX,y:e.clientY,l:wp.scrollLeft,t:wp.scrollTop};view.setPointerCapture(e.pointerId);e.preventDefault()}
-});
-view.addEventListener('pointermove',function(e){
-if(S.pan){var wq=$('#kpc-vw');wq.scrollLeft=S.pan.l-(e.clientX-S.pan.x);wq.scrollTop=S.pan.t-(e.clientY-S.pan.y);return}
+function moveDrag(e){
 var d=S.drag;if(!d||d<0)return;
 var p=ptr(e),x=Math.max(0,Math.min(S.iw,p.x)),y=Math.max(0,Math.min(S.ih,p.y));
 if(d.t=='g'){S.corners[d.i]={x:x,y:y};S.manual=true}
 else{S.reg={x0:Math.min(x,d.fx),y0:Math.min(y,d.fy),x1:Math.max(x,d.fx),y1:Math.max(y,d.fy)};S.moved=true}
 update();
-});
+}
 function endDrag(){var d=S.drag;S.drag=-1;S.pan=null;if(d&&d.t=='r'&&S.moved){S.moved=false;autoGrid()}}
+var hd=[];
+[['r',0],['r',1],['r',2],['r',3],['g',0],['g',1],['g',2],['g',3]].forEach(function(z){
+var d={t:z[0],i:z[1]},el=document.createElement('div');
+el.className='kpc-h';el.setAttribute('aria-hidden','true');$('#kpc-vc').appendChild(el);hd.push({el:el,d:d});
+el.addEventListener('pointerdown',function(e){
+var g=S.reg,rc=[[g.x0,g.y0],[g.x1,g.y0],[g.x1,g.y1],[g.x0,g.y1]],d0=d;
+if(d.t=='r'){var o=rc[(d.i+2)%4];d0={t:'r',fx:o[0],fy:o[1]}}
+S.drag=d0;S.moved=false;el.setPointerCapture(e.pointerId);e.preventDefault();e.stopPropagation();
+});
+el.addEventListener('pointermove',moveDrag);
+el.addEventListener('pointerup',endDrag);
+el.addEventListener('pointercancel',endDrag);
+});
+function placeH(){
+if(!S.corners||!S.reg)return;
+var g=S.reg,rc=[[g.x0,g.y0],[g.x1,g.y0],[g.x1,g.y1],[g.x0,g.y1]];
+hd.forEach(function(h){
+var q=h.d.t=='g'?[S.corners[h.d.i].x,S.corners[h.d.i].y]:rc[h.d.i];
+h.el.style.left=(q[0]/S.iw*100)+'%';h.el.style.top=(q[1]/S.ih*100)+'%';
+});
+}
+view.addEventListener('pointerdown',function(e){
+if(e.pointerType=='touch'||S.zoom<=1)return;
+var wp=$('#kpc-vw');S.pan={x:e.clientX,y:e.clientY,l:wp.scrollLeft,t:wp.scrollTop};view.setPointerCapture(e.pointerId);e.preventDefault();
+});
+view.addEventListener('pointermove',function(e){
+if(!S.pan)return;
+var wq=$('#kpc-vw');wq.scrollLeft=S.pan.l-(e.clientX-S.pan.x);wq.scrollTop=S.pan.t-(e.clientY-S.pan.y);
+});
 view.addEventListener('pointerup',endDrag);
 view.addEventListener('pointercancel',endDrag);
 $('#kpc-use').addEventListener('click',function(){
@@ -504,7 +535,7 @@ S.grid=blank();S.row=0;save();show(2);
 });
 function setZoom(z){
 var w=$('#kpc-vw'),fx=w.scrollWidth?(w.scrollLeft+w.clientWidth/2)/w.scrollWidth:.5,fy=w.scrollHeight?(w.scrollTop+w.clientHeight/2)/w.scrollHeight:.5;
-S.zoom=z;view.style.width=z>1?(z*100)+'%':'';view.style.maxWidth=z>1?'none':'';$('#kpc-zoom').value=z;
+S.zoom=z;$('#kpc-vc').style.width=z>1?(z*100)+'%':'';$('#kpc-vw').style.maxHeight=z>1?'70vh':'';$('#kpc-zoom').value=z;
 w.scrollLeft=fx*w.scrollWidth-w.clientWidth/2;w.scrollTop=fy*w.scrollHeight-w.clientHeight/2;
 if(S.gray)update();
 }
@@ -517,18 +548,35 @@ var b=cv.getBoundingClientRect();
 var c=Math.floor((e.clientX-b.left-S.lm)/S.cell),r=Math.floor((e.clientY-b.top-S.tm)/S.cell);
 return(r>=0&&r<S.rows&&c>=0&&c<S.cols)?[r,c]:null;
 }
+var tap=null;
+S.draw=!(window.matchMedia&&matchMedia('(pointer:coarse)').matches);
+function setDraw(v){
+S.draw=v;edit.style.touchAction=v?'none':'';
+var b=$('#kpc-paint');b.textContent='Drag to draw: '+(v?'on':'off');b.classList.toggle('pri',v);
+}
+setDraw(S.draw);
+$('#kpc-paint').addEventListener('click',function(){setDraw(!S.draw)});
+function cz(d){S.cz=d?Math.max(8,Math.min(48,S.cell+d)):0;draw(edit,'edit')}
+$('#kpc-cm').addEventListener('click',function(){cz(-4)});
+$('#kpc-cp').addEventListener('click',function(){cz(4)});
+$('#kpc-cf').addEventListener('click',function(){cz(0)});
 edit.addEventListener('pointerdown',function(e){
 var h=cellAt(edit,e);if(!h)return;
+if(e.pointerType=='touch'&&!S.draw){tap={r:h[0],c:h[1],x:e.clientX,y:e.clientY,t:Date.now()};return}
 pushU();pv=S.grid[h[0]][h[1]]?0:1;S.grid[h[0]][h[1]]=pv;painting=true;edit.setPointerCapture(e.pointerId);draw(edit,'edit');
 });
 edit.addEventListener('pointermove',function(e){
+if(tap&&Math.hypot(e.clientX-tap.x,e.clientY-tap.y)>8)tap=null;
 if(!painting)return;
 var h=cellAt(edit,e);if(!h||S.grid[h[0]][h[1]]===pv)return;
 S.grid[h[0]][h[1]]=pv;draw(edit,'edit');
 });
 function endPaint(){if(painting){painting=false;save()}}
-edit.addEventListener('pointerup',endPaint);
-edit.addEventListener('pointercancel',endPaint);
+edit.addEventListener('pointerup',function(){
+if(tap){var t=tap;tap=null;if(Date.now()-t.t<600){pushU();S.grid[t.r][t.c]=S.grid[t.r][t.c]?0:1;save();draw(edit,'edit')}}
+endPaint();
+});
+edit.addEventListener('pointercancel',function(){tap=null;endPaint()});
 /*REP-START*/
 function repeatGrid(g,C,mw,mh,R,mode){
 var m=[],r,c,out=[],ho=Math.floor(mw/2),vo=Math.floor(mh/2);
@@ -770,6 +818,7 @@ var saved=JSON.parse(localStorage.getItem(KEY)||'null');
 if(validGrid(saved)){setGrid(saved);show(3);msg('Restored your saved card.')}
 }catch(e){}
 if(!S.grid)show(1);
+if(window.matchMedia&&matchMedia('(max-width:700px)').matches)$$('details.grp').forEach(function(d,i){d.open=i==0});
 })();
 </script>
 </div>
